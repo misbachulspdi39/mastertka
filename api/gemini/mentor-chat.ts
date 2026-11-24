@@ -1,4 +1,4 @@
-import { generateWithFallback } from './_client';
+import { GoogleGenAI } from '@google/genai';
 
 interface VercelReq {
   method?: string;
@@ -30,6 +30,8 @@ interface VercelRes {
   status: (code: number) => { json: (data: unknown) => void };
 }
 
+const MODELS = ['gemini-3.8-flash', 'gemini-3.8-flash-lite', 'gemini-3.0-flash'];
+
 export default async function handler(req: VercelReq, res: VercelRes) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -45,7 +47,9 @@ export default async function handler(req: VercelReq, res: VercelRes) {
   }
 
   try {
+    const ai = new GoogleGenAI({ apiKey });
     const { message, history, studentProfile, context, deepMode } = req.body || {};
+
     if (!message || typeof message !== 'string') {
       res.status(400).json({ error: 'Pesan pertanyaan tidak boleh kosong.' });
       return;
@@ -56,24 +60,18 @@ export default async function handler(req: VercelReq, res: VercelRes) {
     const targetSchool = studentProfile?.targetSchool?.trim() || 'sekolah impian di DIY';
     const targetScore = studentProfile?.targetScore || 85;
 
-    const systemInstruction = `Kamu adalah "Kak Mentor", seorang guru les privat profesional asli Yogyakarta yang ramah, sabar, suportif, cerdas, dan berpengalaman membimbing siswa menghadapi TKA dan TKAD Daerah Istimewa Yogyakarta (DIY).
-
-Profil siswa:
-- Nama panggilan: ${studentName}
-- Jenjang: ${gradeLabel}
-- Target sekolah: ${targetSchool}
-- Target nilai TKAD: ${targetScore}
-
-Pedoman Kak Mentor:
-1. Gunakan bahasa Indonesia hangat, ramah, dan mudah dipahami siswa ${gradeLabel}. Sesekali sisipkan sapaan hangat khas Jogja (seperti "Halo ${studentName}", "Semangat ya!", "Pelan-pelan saja nggih", "Cah hebat!").
-2. METODE SCAFFOLDING: Jangan langsung memberi jawaban akhir di awal saat siswa bertanya tentang soal yang belum selesai dikerjakan. Bimbing langkah demi langkah dan puji usaha siswa.
-3. Jika membahas langkah penyelesaian soal yang sudah dijawab, jelaskan dengan jernih, runtut, dan padat agar mudah dibaca di layar HP/laptop.`;
+    const systemInstruction = `Kamu adalah "Kak Mentor", guru les privat profesional asli Yogyakarta yang ramah, sabar, dan berpengalaman membimbing siswa menghadapi TKA dan TKAD DIY.
+Profil siswa: Nama ${studentName}, Jenjang ${gradeLabel}, Target ${targetSchool} (nilai ${targetScore}).
+Pedoman:
+1. Gunakan bahasa Indonesia hangat dan sapaan khas Jogja ("Halo ${studentName}", "Pelan-pelan saja nggih", "Cah hebat!").
+2. METODE SCAFFOLDING: Jangan langsung memberi jawaban akhir jika soal belum selesai dikerjakan. Bimbing langkah demi langkah.
+3. Jelaskan dengan jernih, runtut, dan padat.`;
 
     let contextBlock = '';
-    if (context && context.type === 'material') {
+    if (context?.type === 'material') {
       contextBlock = `[KONTEKS MATERI]\nJudul: ${context.title || '-'}\nRingkasan: ${context.summary || '-'}\n\n`;
-    } else if (context && context.type === 'question') {
-      contextBlock = `[KONTEKS SOAL]\nStimulus: ${context.stimulusText || '-'}\nPertanyaan: ${context.questionText || '-'}\nJawaban Siswa: ${context.studentAnswer || 'Belum dijawab'}\nKunci Jawaban: ${context.correctAnswer || '-'}\nRingkasan Pembahasan: ${context.explanationText || '-'}\n\n`;
+    } else if (context?.type === 'question') {
+      contextBlock = `[KONTEKS SOAL]\nStimulus: ${context.stimulusText || '-'}\nPertanyaan: ${context.questionText || '-'}\nJawaban Siswa: ${context.studentAnswer || 'Belum dijawab'}\nKunci: ${context.correctAnswer || '-'}\n\n`;
     }
 
     const historyLines = Array.isArray(history)
@@ -83,20 +81,36 @@ Pedoman Kak Mentor:
           .join('\n')
       : '';
 
-    const prompt = `${contextBlock}${historyLines ? `[RIWAYAT PERCAKAPAN]\n${historyLines}\n\n` : ''}Pertanyaan Siswa Sekarang: ${message}`;
+    const prompt = `${contextBlock}${historyLines ? `[RIWAYAT]\n${historyLines}\n\n` : ''}Pertanyaan Siswa: ${message}`;
 
-    const { response, modelUsed } = await generateWithFallback(apiKey, prompt, {
-      systemInstruction,
-      maxOutputTokens: deepMode ? 1200 : 700,
-      thinkingConfig: {
-        thinkingBudget: deepMode ? 256 : 0,
-      },
-    });
+    let lastError: unknown;
+    for (const model of MODELS) {
+      try {
+        const response = await ai.models.generateContent({
+          model,
+          contents: prompt,
+          config: {
+            systemInstruction,
+            maxOutputTokens: deepMode ? 1200 : 700,
+            thinkingConfig: { thinkingBudget: deepMode ? 256 : 0 },
+          },
+        });
+        res.status(200).json({
+          reply: response.text?.trim() || 'Coba tanyakan sekali lagi ya!',
+          modelUsed: model,
+        });
+        return;
+      } catch (err: unknown) {
+        lastError = err;
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes('503') || msg.includes('UNAVAILABLE') || msg.includes('429')) {
+          continue;
+        }
+        throw err;
+      }
+    }
 
-    res.status(200).json({
-      reply: response.text?.trim() || 'Maaf, Kak Mentor belum bisa merangkai jawaban. Coba tanyakan sekali lagi ya!',
-      modelUsed,
-    });
+    throw lastError;
   } catch (err: unknown) {
     const errMsg = err instanceof Error ? err.message : 'Terjadi kesalahan pada server.';
     res.status(500).json({ error: errMsg });

@@ -1,5 +1,4 @@
-import { Type } from '@google/genai';
-import { generateWithFallback } from './_client';
+import { GoogleGenAI, Type } from '@google/genai';
 
 interface VercelReq {
   method?: string;
@@ -16,6 +15,8 @@ interface VercelRes {
   status: (code: number) => { json: (data: unknown) => void };
 }
 
+const MODELS = ['gemini-3.8-flash', 'gemini-3.8-flash-lite', 'gemini-3.0-flash'];
+
 export default async function handler(req: VercelReq, res: VercelRes) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
@@ -31,6 +32,7 @@ export default async function handler(req: VercelReq, res: VercelRes) {
   }
 
   try {
+    const ai = new GoogleGenAI({ apiKey });
     const {
       grade = 'SD',
       subject = 'numerasi',
@@ -50,58 +52,79 @@ export default async function handler(req: VercelReq, res: VercelRes) {
 
     const prompt = `Buatlah ${safeCount} soal latihan baru berstandar TKA & TKAD DIY untuk jenjang ${gradeLabel}, mata uji ${subjectLabel}, topik "${topic}", tingkat kesulitan "${difficulty}" dengan stimulus kearifan lokal Daerah Istimewa Yogyakarta. Pastikan opsi pilihan ganda diawali huruf A., B., C., D. dan correctAnswer berisi teks lengkap pilihan yang benar.`;
 
-    const { response } = await generateWithFallback(apiKey, prompt, {
-      systemInstruction:
-        'Kamu adalah penulis soal TKA & TKAD Dinas Pendidikan Daerah Istimewa Yogyakarta. Pastikan soal akurat, kontekstual DIY, padat, dan output berupa JSON valid sesuai skema.',
-      thinkingConfig: { thinkingBudget: 0 },
-      responseMimeType: 'application/json',
-      responseSchema: {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            topic: { type: Type.STRING },
-            type: { type: Type.STRING },
-            difficulty: { type: Type.STRING },
-            stimulusTitle: { type: Type.STRING },
-            stimulusText: { type: Type.STRING },
-            questionText: { type: Type.STRING },
-            options: { type: Type.ARRAY, items: { type: Type.STRING } },
-            correctAnswer: { type: Type.STRING },
-            explanation: {
-              type: Type.OBJECT,
-              properties: {
-                konsepDasar: { type: Type.STRING },
-                langkahPengerjaan: { type: Type.ARRAY, items: { type: Type.STRING } },
-                tipsCepat: { type: Type.STRING },
+    let responseText = '[]';
+    let lastError: unknown;
+
+    for (const model of MODELS) {
+      try {
+        const response = await ai.models.generateContent({
+          model,
+          contents: prompt,
+          config: {
+            systemInstruction:
+              'Kamu adalah penulis soal TKA & TKAD Dinas Pendidikan DIY. Output wajib JSON valid sesuai skema.',
+            thinkingConfig: { thinkingBudget: 0 },
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  topic: { type: Type.STRING },
+                  type: { type: Type.STRING },
+                  difficulty: { type: Type.STRING },
+                  stimulusTitle: { type: Type.STRING },
+                  stimulusText: { type: Type.STRING },
+                  questionText: { type: Type.STRING },
+                  options: { type: Type.ARRAY, items: { type: Type.STRING } },
+                  correctAnswer: { type: Type.STRING },
+                  explanation: {
+                    type: Type.OBJECT,
+                    properties: {
+                      konsepDasar: { type: Type.STRING },
+                      langkahPengerjaan: { type: Type.ARRAY, items: { type: Type.STRING } },
+                      tipsCepat: { type: Type.STRING },
+                    },
+                    required: ['konsepDasar', 'langkahPengerjaan', 'tipsCepat'],
+                  },
+                },
+                required: [
+                  'topic',
+                  'type',
+                  'difficulty',
+                  'stimulusTitle',
+                  'stimulusText',
+                  'questionText',
+                  'options',
+                  'correctAnswer',
+                  'explanation',
+                ],
               },
-              required: ['konsepDasar', 'langkahPengerjaan', 'tipsCepat'],
             },
           },
-          required: [
-            'topic',
-            'type',
-            'difficulty',
-            'stimulusTitle',
-            'stimulusText',
-            'questionText',
-            'options',
-            'correctAnswer',
-            'explanation',
-          ],
-        },
-      },
-    });
+        });
+        responseText = (response.text || '[]').trim();
+        lastError = null;
+        break;
+      } catch (err: unknown) {
+        lastError = err;
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes('503') || msg.includes('UNAVAILABLE') || msg.includes('429')) {
+          continue;
+        }
+        throw err;
+      }
+    }
 
-    const parsed = JSON.parse((response.text || '[]').trim());
+    if (lastError) throw lastError;
+
+    const parsed = JSON.parse(responseText);
     const nowIso = new Date().toISOString();
 
     const normalized = (Array.isArray(parsed) ? parsed : []).map((q, idx) => {
       const qType = q.type === 'isian_singkat' ? 'isian_singkat' : 'pilihan_ganda';
       const diff =
-        q.difficulty === 'Dasar' || q.difficulty === 'HOTS'
-          ? q.difficulty
-          : 'Menengah';
+        q.difficulty === 'Dasar' || q.difficulty === 'HOTS' ? q.difficulty : 'Menengah';
       return {
         id: `ai-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`,
         grade: grade === 'SMP' ? 'SMP' : 'SD',
