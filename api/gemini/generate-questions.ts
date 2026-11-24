@@ -30,10 +30,7 @@ export default async function handler(req: VercelReq, res: VercelRes) {
   }
 
   try {
-    const ai = new GoogleGenAI({
-      apiKey,
-      httpOptions: { headers: { 'User-Agent': 'aistudio-build' } },
-    });
+    const ai = new GoogleGenAI({ apiKey });
 
     const {
       grade = 'SD',
@@ -52,14 +49,15 @@ export default async function handler(req: VercelReq, res: VercelRes) {
         ? 'Numerasi / Matematika'
         : 'Literasi Sains / IPA';
 
-    const prompt = `Buatlah ${safeCount} soal latihan baru berstandar TKA & TKAD DIY untuk jenjang ${gradeLabel}, mata uji ${subjectLabel}, topik "${topic}", tingkat kesulitan "${difficulty}" dengan stimulus kearifan lokal Daerah Istimewa Yogyakarta.`;
+    const prompt = `Buatlah ${safeCount} soal latihan baru berstandar TKA & TKAD DIY untuk jenjang ${gradeLabel}, mata uji ${subjectLabel}, topik "${topic}", tingkat kesulitan "${difficulty}" dengan stimulus kearifan lokal Daerah Istimewa Yogyakarta. Pastikan opsi pilihan ganda diawali huruf A., B., C., D. dan correctAnswer berisi teks lengkap pilihan yang benar.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-3.8-flash',
       contents: prompt,
       config: {
         systemInstruction:
-          'Kamu adalah penulis soal TKA & TKAD Dinas Pendidikan Daerah Istimewa Yogyakarta. Pastikan soal akurat, kontekstual DIY, dan output berupa JSON valid sesuai skema.',
+          'Kamu adalah penulis soal TKA & TKAD Dinas Pendidikan Daerah Istimewa Yogyakarta. Pastikan soal akurat, kontekstual DIY, padat, dan output berupa JSON valid sesuai skema.',
+        thinkingConfig: { thinkingBudget: 0 },
         responseMimeType: 'application/json',
         responseSchema: {
           type: Type.ARRAY,

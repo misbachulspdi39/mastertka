@@ -41,10 +41,7 @@ export default async function handler(req: VercelReq, res: VercelRes) {
   }
 
   try {
-    const ai = new GoogleGenAI({
-      apiKey,
-      httpOptions: { headers: { 'User-Agent': 'aistudio-build' } },
-    });
+    const ai = new GoogleGenAI({ apiKey });
 
     const { question, studentAnswer, studentProfile } = req.body || {};
     if (!question || !question.questionText) {
@@ -64,23 +61,29 @@ ${Array.isArray(question.options) ? `Pilihan:\n${question.options.join('\n')}` :
 Jawaban Siswa: ${studentAnswer || 'Tidak menjawab'}
 Kunci Jawaban: ${question.correctAnswer}
 
-Berikan:
-1. Bedah Petunjuk Penting di Soal
-2. Langkah Penyelesaian Rinci & Jebakan Pengecoh
-3. Tips Cepat Menghadapi Soal Serupa di TKAD DIY.`;
+Berikan penjelasan yang ringkas, jelas, dan terstruktur:
+1. **Bedah Petunjuk Penting di Soal**
+2. **Langkah Penyelesaian Rinci & Jebakan Pengecoh**
+3. **Tips Cepat Menghadapi Soal Serupa di TKAD DIY**`;
+
+    const modelName = 'gemini-3.8-flash';
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-pro',
+      model: modelName,
       contents: prompt,
       config: {
         systemInstruction:
           'Kamu adalah Kak Mentor, guru les privat ramah asal Yogyakarta. Jelaskan analisis soal secara sabar, jernih, dan terstruktur.',
+        maxOutputTokens: 1000,
+        thinkingConfig: {
+          thinkingBudget: 256,
+        },
       },
     });
 
     res.status(200).json({
       analysis: response.text?.trim() || '',
-      modelUsed: 'gemini-2.5-pro',
+      modelUsed: modelName,
     });
   } catch (err: unknown) {
     const errMsg = err instanceof Error ? err.message : 'Gagal membuat analisis mendalam.';

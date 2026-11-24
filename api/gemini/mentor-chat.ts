@@ -45,10 +45,7 @@ export default async function handler(req: VercelReq, res: VercelRes) {
   }
 
   try {
-    const ai = new GoogleGenAI({
-      apiKey,
-      httpOptions: { headers: { 'User-Agent': 'aistudio-build' } },
-    });
+    const ai = new GoogleGenAI({ apiKey });
 
     const { message, history, studentProfile, context, deepMode } = req.body || {};
     if (!message || typeof message !== 'string') {
@@ -72,7 +69,7 @@ Profil siswa:
 Pedoman Kak Mentor:
 1. Gunakan bahasa Indonesia hangat, ramah, dan mudah dipahami siswa ${gradeLabel}. Sesekali sisipkan sapaan hangat khas Jogja (seperti "Halo ${studentName}", "Semangat ya!", "Pelan-pelan saja nggih", "Cah hebat!").
 2. METODE SCAFFOLDING: Jangan langsung memberi jawaban akhir di awal saat siswa bertanya tentang soal yang belum selesai dikerjakan. Bimbing langkah demi langkah dan puji usaha siswa.
-3. Jika membahas langkah penyelesaian soal yang sudah dijawab, jelaskan dengan jernih, runtut, dan sabar.`;
+3. Jika membahas langkah penyelesaian soal yang sudah dijawab, jelaskan dengan jernih, runtut, dan padat agar mudah dibaca di layar HP/laptop.`;
 
     let contextBlock = '';
     if (context && context.type === 'material') {
@@ -83,22 +80,30 @@ Pedoman Kak Mentor:
 
     const historyLines = Array.isArray(history)
       ? history
-          .slice(-8)
+          .slice(-6)
           .map((m) => `${m.role === 'user' ? 'Siswa' : 'Kak Mentor'}: ${m.text || ''}`)
           .join('\n')
       : '';
 
     const prompt = `${contextBlock}${historyLines ? `[RIWAYAT PERCAKAPAN]\n${historyLines}\n\n` : ''}Pertanyaan Siswa Sekarang: ${message}`;
-    const modelName = deepMode ? 'gemini-2.5-pro' : 'gemini-3.8-flash';
+    
+    // Gunakan gemini-3.8-flash untuk kedua mode agar cepat dan tidak timeout di Vercel
+    const modelName = 'gemini-3.8-flash';
 
     const response = await ai.models.generateContent({
       model: modelName,
       contents: prompt,
-      config: { systemInstruction },
+      config: {
+        systemInstruction,
+        maxOutputTokens: deepMode ? 1200 : 700,
+        thinkingConfig: {
+          thinkingBudget: deepMode ? 512 : 0, // 0 = langsung jawab kilat tanpa loading lama
+        },
+      },
     });
 
     res.status(200).json({
-      reply: response.text?.trim() || '',
+      reply: response.text?.trim() || 'Maaf, Kak Mentor belum bisa merangkai jawaban. Coba tanyakan sekali lagi ya!',
       modelUsed: modelName,
     });
   } catch (err: unknown) {

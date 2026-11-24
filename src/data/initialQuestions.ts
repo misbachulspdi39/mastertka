@@ -808,4 +808,720 @@ export const INITIAL_QUESTIONS: Question[] = [
         'Pastikan selalu membagi dengan 1.000 untuk mengubah Watt-jam (Wh) ke kilowatt-jam (kWh) sebelum dikalikan tarif.',
     },
   },
+// ================= TAMBAHAN BANK SOAL SD KELAS 6 (12 SOAL) =================
+  {
+    id: 'sd-lit-4',
+    grade: 'SD',
+    subject: 'literasi',
+    topic: 'Ide Pokok & Simpulan Teks',
+    type: 'pilihan_ganda',
+    difficulty: 'Dasar',
+    stimulusTitle: 'Keunikan Geblek Kulon Progo',
+    stimulusText:
+      'Geblek merupakan salah satu makanan tradisional khas Kabupaten Kulon Progo, Yogyakarta. Kudapan berwarna putih bersih ini terbuat dari tepung pati singkong basah yang dibumbui bawang putih dan garam, lalu dibentuk menyerupai angka delapan. Geblek paling nikmat disantap selagi hangat bersama tempe benguk bacem karena teksturnya yang kenyal di dalam dan renyah di luar.',
+    questionText: 'Simpulan yang paling tepat berdasarkan isi paragraf tersebut adalah ....',
+    options: [
+      'A. Geblek hanya boleh dimakan pada pagi hari bersama tempe bacem',
+      'B. Geblek adalah jajanan khas Kulon Progo berbahan pati singkong berbentuk angka delapan yang nikmat disantap hangat',
+      'C. Semua makanan khas Yogyakarta terbuat dari tepung pati singkong basah',
+      'D. Tempe benguk merupakan bahan utama untuk membuat adonan geblek',
+    ],
+    correctAnswer:
+      'B. Geblek adalah jajanan khas Kulon Progo berbahan pati singkong berbentuk angka delapan yang nikmat disantap hangat',
+    explanation: {
+      konsepDasar:
+        'Simpulan menyatukan informasi inti dari awal hingga akhir paragraf secara padat dan akurat.',
+      langkahPengerjaan: [
+        'Kalimat 1 menjelaskan asal daerah geblek (Kulon Progo).',
+        'Kalimat 2 menjelaskan bahan utama (pati singkong) dan bentuknya (angka delapan).',
+        'Kalimat 3 menjelaskan cara penyajian terbaiknya (disantap hangat).',
+        'Pilihan B merangkum ketiga informasi tersebut secara lengkap tanpa menambah informasi keliru.',
+      ],
+      tipsCepat:
+        'Pilih jawaban yang mencakup unsur "apa, dari mana, dan bagaimana" sesuai isi bacaan tanpa kata mutlak seperti "semua" atau "hanya".',
+    },
+  },
+  {
+    id: 'sd-lit-5',
+    grade: 'SD',
+    subject: 'literasi',
+    topic: 'Makna Kata & Sinonim Kontekstual',
+    type: 'pilihan_ganda',
+    difficulty: 'Menengah',
+    stimulusTitle: 'Konservasi Penyu di Pantai Trisik',
+    stimulusText:
+      'Kelompok pelestari lingkungan di Pantai Trisik, Kulon Progo, rutin melakukan patroli malam untuk menyelamatkan telur penyu lekang dari ancaman predator alami maupun perburuan. Telur-telur tersebut dipindahkan ke tempat penetasan semi-alami hingga menetas menjadi tukik. Setelah cukup kuat, tukik-tukik itu dilepasliarkan kembali ke samudra.',
+    questionText: 'Makna kata "tukik" pada bacaan di atas adalah ....',
+    options: [
+      'A. Telur penyu yang gagal menetas',
+      'B. Anak penyu yang baru menetas',
+      'C. Tempat penangkaran penyu di tepi pantai',
+      'D. Petugas penjaga kelestarian pantai',
+    ],
+    correctAnswer: 'B. Anak penyu yang baru menetas',
+    explanation: {
+      konsepDasar:
+        'Makna istilah khusus dapat ditemukan melalui petunjuk kalimat sebelum dan sesudahnya (konteks kalimat).',
+      langkahPengerjaan: [
+        'Perhatikan kalimat kedua: "...hingga menetas menjadi tukik."',
+        'Dari frasa "menetas menjadi", jelas bahwa tukik adalah anak penyu yang baru keluar dari telur.',
+      ],
+      tipsCepat:
+        'Gunakan kalimat di sekitar istilah asing untuk menebak artinya secara logis.',
+    },
+  },
+  {
+    id: 'sd-lit-6',
+    grade: 'SD',
+    subject: 'literasi',
+    topic: 'Pemahaman Bacaan & Data',
+    type: 'pilihan_ganda',
+    difficulty: 'HOTS',
+    stimulusTitle: 'Jadwal Panen Salak Pondoh Sleman',
+    stimulusText:
+      'Kelompok Tani "Maju Makmur" di Kecamatan Turi, Sleman, mencatat hasil panen salak pondoh selama empat minggu pada bulan Desember sebagai berikut:',
+    dataTable: {
+      headers: ['Minggu Ke-', 'Hasil Panen (kg)', 'Kualitas Super (%)'],
+      rows: [
+        ['Minggu I', '400 kg', '75%'],
+        ['Minggu II', '500 kg', '80%'],
+        ['Minggu III', '450 kg', '60%'],
+        ['Minggu IV', '600 kg', '70%'],
+      ],
+    },
+    questionText:
+      'Berdasarkan tabel di atas, pada minggu ke berapakah jumlah salak kualitas super (dalam kg) dihasilkan paling banyak?',
+    options: [
+      'A. Minggu I',
+      'B. Minggu II',
+      'C. Minggu III',
+      'D. Minggu IV',
+    ],
+    correctAnswer: 'D. Minggu IV',
+    explanation: {
+      konsepDasar:
+        'Literasi numerasi pada tabel membutuhkan perhitungan nilai riil (persentase × total), bukan hanya melihat angka persen terbesar.',
+      langkahPengerjaan: [
+        'Minggu I: 75% × 400 kg = 300 kg.',
+        'Minggu II: 80% × 500 kg = 400 kg.',
+        'Minggu III: 60% × 450 kg = 270 kg.',
+        'Minggu IV: 70% × 600 kg = 420 kg (terbanyak).',
+      ],
+      tipsCepat:
+        'Jangan terkecoh persentase tertinggi (80% di Minggu II), kalikan dulu dengan total panen masing-masing baris.',
+    },
+  },
+  {
+    id: 'sd-lit-7',
+    grade: 'SD',
+    subject: 'literasi',
+    topic: 'Amanat & Unsur Intrinsik Cerita',
+    type: 'pilihan_ganda',
+    difficulty: 'Menengah',
+    stimulusTitle: 'Lomba Panjat Pinang di Alun-Alun',
+    stimulusText:
+      'Regu Melati semula kesulitan mencapai puncak batang pinang karena setiap anggota ingin memanjat paling atas demi mengambil hadiah utama. Akibatnya, mereka berkali-kali merosot jatuh. Setelah berdiskusi singkat, Raka yang bertubuh paling kokoh bersedia menjadi tumpuan paling bawah, sementara Bimo yang bertubuh ringan memanjat ke puncak. Akhirnya, Regu Melati berhasil meraih bendera kemenangan.',
+    questionText: 'Pesan moral yang terkandung dalam cerita di atas adalah ....',
+    options: [
+      'A. Kemenangan hanya bisa diraih oleh peserta yang bertubuh paling ringan',
+      'B. Kerja sama dan pembagian peran yang adil dapat mengatasi kesulitan bersama',
+      'C. Dalam perlombaan kita harus selalu mengutamakan keinginan pribadi',
+      'D. Batang pinang yang licin tidak mungkin dipanjat tanpa alat bantu',
+    ],
+    correctAnswer:
+      'B. Kerja sama dan pembagian peran yang adil dapat mengatasi kesulitan bersama',
+    explanation: {
+      konsepDasar:
+        'Amanat cerita terlihat dari perubahan strategi tokoh yang mengubah kegagalan menjadi keberhasilan.',
+      langkahPengerjaan: [
+        'Awalnya regu gagal karena egois (semua ingin di atas).',
+        'Setelah mau bekerja sama membagi peran sesuai kekuatan masing-masing, mereka berhasil.',
+        'Inti pesannya adalah pentingnya kerja sama tim (pilihan B).',
+      ],
+      tipsCepat:
+        'Bandingkan kondisi sebelum dan sesudah masalah terpecahkan untuk menemukan inti amanat.',
+    },
+  },
+  {
+    id: 'sd-num-4',
+    grade: 'SD',
+    subject: 'numerasi',
+    topic: 'KPK & FPB Kontekstual',
+    type: 'pilihan_ganda',
+    difficulty: 'Menengah',
+    stimulusTitle: 'Paket Oleh-Oleh Bakpia Pathok',
+    stimulusText:
+      'Bu Ratna membuat 48 buah bakpia kacang hijau dan 72 buah bakpia keju. Seluruh bakpia tersebut akan dikemas ke dalam beberapa kotak oleh-oleh dengan jumlah dan jenis isi yang sama banyak pada setiap kotaknya.',
+    questionText:
+      'Berapa banyak bakpia keju di dalam setiap kotak jika Bu Ratna membuat kotak sebanyak-banyaknya?',
+    options: ['A. 2 buah', 'B. 3 buah', 'C. 4 buah', 'D. 24 buah'],
+    correctAnswer: 'B. 3 buah',
+    explanation: {
+      konsepDasar:
+        'Kata kunci "dibagi sama banyak" dan "sebanyak-banyaknya" diselesaikan menggunakan FPB (Faktor Persekutuan Terbesar).',
+      langkahPengerjaan: [
+        'Cari FPB dari 48 dan 72: 48 = 2⁴ × 3; 72 = 2³ × 3².',
+        'FPB = 2³ × 3 = 8 × 3 = 24 kotak.',
+        'Hitung isi bakpia keju per kotak: 72 ÷ 24 = 3 buah.',
+      ],
+      tipsCepat:
+        'Hati-hati! FPB (24) adalah jumlah KOTAK-nya. Yang ditanyakan adalah isi bakpia keju per kotak (72 ÷ 24 = 3).',
+    },
+  },
+  {
+    id: 'sd-num-5',
+    grade: 'SD',
+    subject: 'numerasi',
+    topic: 'Perbandingan & Skala Peta',
+    type: 'pilihan_ganda',
+    difficulty: 'Menengah',
+    stimulusTitle: 'Peta Wisata Daerah Istimewa Yogyakarta',
+    stimulusText:
+      'Pada sebuah peta wisata DIY berskala 1 : 250.000, jarak antara Candi Prambanan dan Pantai Parangtritis terukur sepanjang 16 cm.',
+    questionText: 'Berapa kilometer jarak sebenarnya antara kedua tempat wisata tersebut?',
+    options: ['A. 4 km', 'B. 25 km', 'C. 40 km', 'D. 400 km'],
+    correctAnswer: 'C. 40 km',
+    explanation: {
+      konsepDasar: 'Jarak Sebenarnya (JS) = Jarak Peta (JP) × Penyebut Skala.',
+      langkahPengerjaan: [
+        'Hitung JS dalam cm: 16 cm × 250.000 = 4.000.000 cm.',
+        'Ubah cm ke km dengan membagi 100.000 (coret 5 nol): 4.000.000 ÷ 100.000 = 40 km.',
+      ],
+      tipsCepat:
+        'Coret 5 angka nol pada skala terlebih dahulu (250.000 → 2,5 km), lalu kalikan langsung dengan jarak peta: 16 × 2,5 = 40 km!',
+    },
+  },
+  {
+    id: 'sd-num-6',
+    grade: 'SD',
+    subject: 'numerasi',
+    topic: 'Volume Bangun Ruang & Debit',
+    type: 'isian_singkat',
+    difficulty: 'HOTS',
+    stimulusTitle: 'Kolam Ikan Taman Sari',
+    stimulusText:
+      'Sebuah bak penampungan air berbentuk balok memiliki ukuran panjang 150 cm, lebar 80 cm, dan tinggi 100 cm. Bak tersebut akan diisi air menggunakan selang dengan debit 20 liter/menit hingga penuh.',
+    questionText:
+      'Berapa menit waktu yang diperlukan untuk mengisi bak tersebut sampai penuh? (Tulis angkanya saja)',
+    correctAnswer: '60',
+    explanation: {
+      konsepDasar:
+        'Volume balok = p × l × t, dengan konversi 1.000 cm³ = 1 liter, dan Waktu = Volume ÷ Debit.',
+      langkahPengerjaan: [
+        'Hitung volume dalam cm³: 150 × 80 × 100 = 1.200.000 cm³.',
+        'Ubah ke liter: 1.200.000 ÷ 1.000 = 1.200 liter.',
+        'Hitung waktu pengisian: 1.200 liter ÷ 20 liter/menit = 60 menit.',
+      ],
+      tipsCepat:
+        'Ubah ukuran balok ke desimeter (dm) sejak awal: 15 dm × 8 dm × 10 dm = 1.200 dm³ = 1.200 liter.',
+    },
+  },
+  {
+    id: 'sd-num-7',
+    grade: 'SD',
+    subject: 'numerasi',
+    topic: 'Statistika & Rata-Rata (Mean)',
+    type: 'pilihan_ganda',
+    difficulty: 'Menengah',
+    stimulusTitle: 'Nilai Try Out TKAD Bima',
+    stimulusText:
+      'Dalam 4 kali latihan ujian TKAD Numerasi, Bima memperoleh nilai berturut-turut: 82, 86, 80, dan 88. Bima ingin nilai rata-rata dari 5 kali latihan ujian menjadi tepat 85.',
+    questionText: 'Berapa nilai minimal yang harus diraih Bima pada latihan ujian ke-5?',
+    options: ['A. 85', 'B. 87', 'C. 89', 'D. 90'],
+    correctAnswer: 'C. 89',
+    explanation: {
+      konsepDasar:
+        'Total Nilai = Rata-rata yang diinginkan × Banyaknya Ujian.',
+      langkahPengerjaan: [
+        'Target total nilai 5 ujian: 85 × 5 = 425.',
+        'Jumlah nilai 4 ujian pertama: 82 + 86 + 80 + 88 = 336.',
+        'Nilai ujian ke-5 yang dibutuhkan: 425 − 336 = 89.',
+      ],
+      tipsCepat:
+        'Hitung selisih tiap nilai terhadap target 85: (-3) + (+1) + (-5) + (+3) = -4. Agar impas jadi 0, ujian ke-5 harus 85 + 4 = 89!',
+    },
+  },
+  {
+    id: 'sd-sai-4',
+    grade: 'SD',
+    subject: 'sains',
+    topic: 'Adaptasi Makhluk Hidup',
+    type: 'pilihan_ganda',
+    difficulty: 'Dasar',
+    stimulusTitle: 'Hutan Mangrove Wanatirta Kulon Progo',
+    stimulusText:
+      'Kawasan pesisir Pasir Mendit di Kulon Progo ditanami ribuan pohon bakau (mangrove) untuk menahan abrasi gelombang laut selatan. Pohon bakau memiliki akar tunjang yang mencuat tinggi ke permukaan lumpur serta daun yang mampu mengeluarkan kelebihan garam.',
+    questionText:
+      'Fungsi utama akar tunjang yang mencuat pada pohon bakau tersebut adalah ....',
+    options: [
+      'A. Menyimpan cadangan air tawar selama musim kemarau panjang',
+      'B. Menopang batang agar kokoh dari hempasan ombak dan membantu pernapasan di tanah berlumpur',
+      'C. Mengapungkan seluruh bagian pohon saat air laut sedang pasang',
+      'D. Menangkap serangga kecil sebagai sumber nutrisi tambahan',
+    ],
+    correctAnswer:
+      'B. Menopang batang agar kokoh dari hempasan ombak dan membantu pernapasan di tanah berlumpur',
+    explanation: {
+      konsepDasar:
+        'Adaptasi morfologi tumbuhan disesuaikan dengan kondisi ekstrem habitatnya (lumpur minim oksigen dan terjangan ombak).',
+      langkahPengerjaan: [
+        'Tanah lumpur pesisir miskin oksigen sehingga akar mencuat untuk mengambil udara (akar napas/tunjang).',
+        'Struktur akar yang bercabang kokoh menahan pohon agar tidak tumbang diterjang gelombang pantai selatan.',
+      ],
+      tipsCepat:
+        'Kaitkan ciri fisik tumbuhan (akar mencuat & kokoh) langsung dengan tantangan lingkungannya (lumpur & ombak).',
+    },
+  },
+  {
+    id: 'sd-sai-5',
+    grade: 'SD',
+    subject: 'sains',
+    topic: 'Rangkaian Listrik & Energi',
+    type: 'pilihan_ganda',
+    difficulty: 'HOTS',
+    stimulusTitle: 'Penerangan Teras Rumah Limasan',
+    stimulusText:
+      'Pak Wawan memasang 3 lampu di teras rumahnya: Lampu 1 dan Lampu 2 dipasang secara seri pada satu cabang, sedangkan Lampu 3 dipasang paralel terhadap cabang Lampu 1 dan 2. Seluruh rangkaian terhubung ke sumber listrik dengan satu sakelar utama.',
+    questionText:
+      'Jika Lampu 1 tiba-tiba putus saat sakelar dalam keadaan menyala, kondisi Lampu 2 dan Lampu 3 adalah ....',
+    options: [
+      'A. Lampu 2 padam, sedangkan Lampu 3 tetap menyala',
+      'B. Lampu 2 tetap menyala, sedangkan Lampu 3 padam',
+      'C. Kedua lampu (Lampu 2 dan Lampu 3) ikut padam',
+      'D. Kedua lampu menyala lebih redup dari sebelumnya',
+    ],
+    correctAnswer: 'A. Lampu 2 padam, sedangkan Lampu 3 tetap menyala',
+    explanation: {
+      konsepDasar:
+        'Pada rangkaian seri, arus mengalir dalam satu jalur sehingga satu komponen putus memutus seluruh jalur itu. Pada rangkaian paralel, jalur lain tetap mendapat arus.',
+      langkahPengerjaan: [
+        'Lampu 1 dan Lampu 2 satu jalur seri → jika Lampu 1 putus, arus ke Lampu 2 terhenti sehingga Lampu 2 padam.',
+        'Lampu 3 berada pada cabang paralel terpisah → arus listrik tetap mengalir lancar sehingga Lampu 3 tetap menyala.',
+      ],
+      tipsCepat:
+        'Ingat prinsip dasar: Seri = "Satu mati, sejalur ikut mati"; Paralel = "Cabang lain tetap menyala".',
+    },
+  },
+  {
+    id: 'sd-sai-6',
+    grade: 'SD',
+    subject: 'sains',
+    topic: 'Sistem Tata Surya & Gerhana',
+    type: 'pilihan_ganda',
+    difficulty: 'Menengah',
+    stimulusTitle: 'Pengamatan Langit di Taman Pintar Yogyakarta',
+    stimulusText:
+      'Dalam pertunjukan planetarium di Taman Pintar Yogyakarta, ditampilkan simulasi posisi Matahari, Bumi, dan Bulan yang berada tepat pada satu garis lurus. Pada simulasi tersebut, bayangan inti (umbra) Bulan jatuh menutupi sebagian permukaan Bumi pada siang hari.',
+    questionText: 'Peristiwa alam yang ditunjukkan pada simulasi tersebut adalah ....',
+    options: [
+      'A. Gerhana Bulan Total',
+      'B. Gerhana Matahari Total di wilayah yang terkena umbra',
+      'C. Fase Bulan Purnama',
+      'D. Pergantian musim kemarau ke musim penghujan',
+    ],
+    correctAnswer: 'B. Gerhana Matahari Total di wilayah yang terkena umbra',
+    explanation: {
+      konsepDasar:
+        'Gerhana Matahari terjadi ketika Bulan berada di antara Matahari dan Bumi sehingga bayangan Bulan jatuh ke permukaan Bumi.',
+      langkahPengerjaan: [
+        'Identifikasi benda yang bayangannya jatuh ke Bumi: bayangan Bulan.',
+        'Karena Bulan menghalangi cahaya Matahari menuju Bumi pada siang hari, peristiwa tersebut adalah Gerhana Matahari.',
+        'Wilayah yang terkena bayangan inti (umbra) mengalami Gerhana Matahari Total.',
+      ],
+      tipsCepat:
+        'Ingat singkatannya: Ma-Bu-Mi (Matahari-Bulan-Bumi) = Gerhana Matahari; Ma-Mi-Bu (Matahari-Bumi-Bulan) = Gerhana Bulan.',
+    },
+  },
+  {
+    id: 'sd-sai-7',
+    grade: 'SD',
+    subject: 'sains',
+    topic: 'Sistem Pernapasan & Pencernaan Manusia',
+    type: 'pilihan_ganda',
+    difficulty: 'Dasar',
+    stimulusTitle: 'Proses Pencernaan Makanan Sarapan Pagi',
+    stimulusText:
+      'Sebelum berangkat mengikuti uji coba TKAD, Dinda sarapan sepiring nasi hangat dan telur rebus. Nasi mengandung karbohidrat (amilum), sedangkan putih telur kaya akan protein.',
+    questionText:
+      'Organ pencernaan tempat pertama kali amilum pada nasi dicerna secara kimiawi oleh enzim adalah ....',
+    options: [
+      'A. Rongga mulut oleh enzim ptialin (amilase)',
+      'B. Lambung oleh enzim pepsin',
+      'C. Usus halus oleh enzim lipase',
+      'D. Usus besar oleh bakteri pembusuk',
+    ],
+    correctAnswer: 'A. Rongga mulut oleh enzim ptialin (amilase)',
+    explanation: {
+      konsepDasar:
+        'Pencernaan kimiawi karbohidrat dimulai sejak makanan dikunyah di dalam mulut dengan bantuan air ludah yang mengandung enzim ptialin/amilase.',
+      langkahPengerjaan: [
+        'Nasi merupakan sumber karbohidrat (amilum).',
+        'Di rongga mulut, enzim ptialin mengubah amilum menjadi zat gula sederhana (maltosa).',
+        'Sementara protein pada telur baru dicerna secara kimiawi di lambung oleh enzim pepsin.',
+      ],
+      tipsCepat:
+        'Nasi dikunyah lama terasa manis di mulut karena enzim ptialin sudah mulai bekerja mengubah karbohidrat menjadi gula!',
+    },
+  },
+
+  // ================= TAMBAHAN BANK SOAL SMP KELAS 9 (12 SOAL) =================
+  {
+    id: 'smp-lit-4',
+    grade: 'SMP',
+    subject: 'literasi',
+    topic: 'Fakta, Opini, & Evaluasi Argumen',
+    type: 'pilihan_ganda',
+    difficulty: 'Menengah',
+    stimulusTitle: 'Transformasi KRL Commuter Line Yogyakarta–Solo',
+    stimulusText:
+      '(1) Sejak dioperasikan penuh pada awal 2021, KRL Commuter Line lintas Yogyakarta–Solo menggantikan peran kereta api Prambanan Ekspres. (2) Kereta bertenaga listrik ini melayani 13 stasiun mulai dari Stasiun Tugu Yogyakarta hingga Stasiun Palur dengan tarif flat Rp8.000 per perjalanan. (3) Kehadiran KRL menjadikan mobilitas pelajar dan pekerja antar-kota terasa jauh lebih modern serta bebas polusi asap. (4) Ke depannya, frekuensi perjalanan pada jam pulang sekolah perlu ditambah agar penumpang tidak berdesakan.',
+    questionText:
+      'Kalimat yang memuat gagasan berupa saran atau rekomendasi penulis ditunjukkan oleh nomor ....',
+    options: ['A. (1)', 'B. (2)', 'C. (3)', 'D. (4)'],
+    correctAnswer: 'D. (4)',
+    explanation: {
+      konsepDasar:
+        'Kalimat rekomendasi/saran dalam teks eksposisi ditandai oleh verba modalitas seperti "perlu", "sebaiknya", atau "hendaknya".',
+      langkahPengerjaan: [
+        'Kalimat (1) dan (2) berisi fakta historis dan data tarif/jumlah stasiun.',
+        'Kalimat (3) berisi opini evaluatif ("jauh lebih modern").',
+        'Kalimat (4) memuat frasa "perlu ditambah" yang merupakan rekomendasi penulis.',
+      ],
+      tipsCepat:
+        'Langsung cari kata kunci anjuran ("perlu", "sebaiknya", "harus") pada akhir paragraf.',
+    },
+  },
+  {
+    id: 'smp-lit-5',
+    grade: 'SMP',
+    subject: 'literasi',
+    topic: 'Makna Simbolis & Analisis Cerpen',
+    type: 'pilihan_ganda',
+    difficulty: 'HOTS',
+    stimulusTitle: 'Suara Gamelan di Pendopo Kecamatan',
+    stimulusText:
+      'Tiga bulan menjelang festival karawitan pelajar se-DIY, jari-jari Arga masih sering kaku memukul bilah saron. Beberapa temannya mulai jenuh dan memilih pulang lebih awal untuk bermain gim daring. Namun, Arga tetap bertahan menabuh pelan mengikuti ketukan kendang Pak Mardi hingga senja turun. Baginya, setiap tabuhan yang sumbang hari ini adalah tangga batu yang harus ia daki sebelum mampu memainkan gending dengan merdu.',
+    questionText:
+      'Sudut pandang dan watak tokoh Arga yang tergambar dalam kutipan cerpen tersebut adalah ....',
+    options: [
+      'A. Orang pertama pelaku utama; mudah menyerah saat menghadapi kesulitan',
+      'B. Orang ketiga serba tahu; tekun dan pantang menyerah dalam berlatih',
+      'C. Orang pertama pelaku sampingan; gemar menasihati teman-temannya',
+      'D. Orang ketiga pengamat; ceroboh dan tergesa-gesa dalam bermain gamelan',
+    ],
+    correctAnswer:
+      'B. Orang ketiga serba tahu; tekun dan pantang menyerah dalam berlatih',
+    explanation: {
+      konsepDasar:
+        'Sudut pandang orang ketiga serba tahu menggunakan nama tokoh ("Arga") serta mampu menggambarkan isi pikiran/perasaan batin tokoh ("Baginya, setiap tabuhan...").',
+      langkahPengerjaan: [
+        'Narator menyebut nama "Arga" dan kata ganti "ia", bukan "aku" → Orang ketiga.',
+        'Narator mengetahui pandangan batin Arga → Serba tahu.',
+        'Arga tetap berlatih meski jarinya kaku dan teman-temannya pulang → Tekun dan pantang menyerah.',
+      ],
+      tipsCepat:
+        'Jika tidak ada kata "aku/saya" di luar dialog, pasti sudut pandang orang ketiga!',
+    },
+  },
+  {
+    id: 'smp-lit-6',
+    grade: 'SMP',
+    subject: 'literasi',
+    topic: 'Inferensi Data Infografik Teks',
+    type: 'pilihan_ganda',
+    difficulty: 'Menengah',
+    stimulusTitle: 'Statistik Wisatawan Candi Ratu Boko',
+    stimulusText:
+      'Pengelola Taman Wisata Candi Ratu Boko mencatat jumlah kunjungan wisatawan nusantara dan mancanegara selama tiga periode libur panjang:',
+    dataTable: {
+      headers: ['Periode Libur', 'Wisatawan Nusantara', 'Wisatawan Mancanegara'],
+      rows: [
+        ['Libur Idulfitri', '18.500 orang', '1.500 orang'],
+        ['Libur Sekolah Juni', '22.000 orang', '2.400 orang'],
+        ['Libur Akhir Tahun', '25.500 orang', '3.100 orang'],
+      ],
+    },
+    questionText:
+      'Pernyataan inferensi yang paling tepat berdasarkan data tabel di atas adalah ....',
+    options: [
+      'A. Kunjungan wisatawan mancanegara selalu lebih banyak daripada wisatawan nusantara',
+      'B. Kenaikan jumlah wisatawan nusantara selalu sejalan dengan kenaikan wisatawan mancanegara pada setiap periode',
+      'C. Total seluruh wisatawan pada Libur Sekolah Juni melampaui 25.000 orang',
+      'D. Persentase wisatawan mancanegara pada Libur Idulfitri mencapai 15% dari total pengunjung',
+    ],
+    correctAnswer:
+      'B. Kenaikan jumlah wisatawan nusantara selalu sejalan dengan kenaikan wisatawan mancanegara pada setiap periode',
+    explanation: {
+      konsepDasar:
+        'Inferensi data membandingkan pola tren antar-kolom dan menguji kebenaran hitungannya.',
+      langkahPengerjaan: [
+        'Cek tren Nusantara: 18.500 → 22.000 → 25.500 (terus naik).',
+        'Cek tren Mancanegara: 1.500 → 2.400 → 3.100 (juga terus naik). Maka opsi B benar.',
+        'Cek opsi C: 22.000 + 2.400 = 24.400 (belum melampaui 25.000).',
+        'Cek opsi D: 1.500 ÷ 20.000 = 7,5%, bukan 15%.',
+      ],
+      tipsCepat:
+        'Uji setiap opsi menggunakan angka pasti di tabel; eliminasi opsi yang hitungan penjumlahan atau persennya meleset.',
+    },
+  },
+  {
+    id: 'smp-lit-7',
+    grade: 'SMP',
+    subject: 'literasi',
+    topic: 'Kohesi, Koherensi, & Kalimat Efektif',
+    type: 'pilihan_ganda',
+    difficulty: 'Dasar',
+    stimulusTitle: 'Pengelolaan Sampah Mandiri di Sekolah',
+    stimulusText:
+      '(1) Banyak para siswa-siswa di SMPN Yogyakarta mulai membawa botol minum isi ulang dari rumah. (2) Kebiasaan ini terbukti mampu mengurangi timbulan sampah plastik sekali pakai di lingkungan kantin sekolah. (3) Selain lebih higienis, membawa bekal minum sendiri juga menghemat uang saku harian.',
+    questionText:
+      'Perbaikan yang tepat agar kalimat (1) menjadi kalimat efektif adalah ....',
+    options: [
+      'A. Menghilangkan kata "para" dan mengulang kata "siswa" menjadi "Banyak siswa-siswa"',
+      'B. Menghilangkan kata "para" dan mengubah "siswa-siswa" menjadi "siswa"',
+      'C. Mengganti kata "dari rumah" menjadi "dari rumahnya masing-masing"',
+      'D. Menambahkan kata "sekali" setelah kata "Banyak"',
+    ],
+    correctAnswer:
+      'B. Menghilangkan kata "para" dan mengubah "siswa-siswa" menjadi "siswa"',
+    explanation: {
+      konsepDasar:
+        'Kalimat efektif menghindari kejamakan ganda (pleonasme). Kata "banyak", "para", dan bentuk ulang "siswa-siswa" semuanya sudah bermakna jamak.',
+      langkahPengerjaan: [
+        'Pada frasa "Banyak para siswa-siswa", terdapat tiga penanda jamak sekaligus.',
+        'Cukup gunakan satu penanda jamak: "Banyak siswa di SMPN Yogyakarta..." (pilihan B).',
+      ],
+      tipsCepat:
+        'Jika sudah ada kata "banyak", "semua", atau "para", kata benda di belakangnya tidak boleh diulang.',
+    },
+  },
+  {
+    id: 'smp-num-3',
+    grade: 'SMP',
+    subject: 'numerasi',
+    topic: 'Aritmatika Sosial & SPLDV',
+    type: 'pilihan_ganda',
+    difficulty: 'Menengah',
+    stimulusTitle: 'Promo Diskon Bertingkat Toko Batik Malioboro',
+    stimulusText:
+      'Sebuah kemeja batik tulis di toko kawasan Malioboro memiliki label harga Rp400.000. Dalam rangka memperingati Hari Jadi Kota Yogyakarta, toko memberikan diskon bertingkat sebesar 25% + 10% untuk setiap pembayaran nontunai.',
+    questionText:
+      'Berapa rupiah yang harus dibayarkan pembeli jika membayar secara nontunai?',
+    options: [
+      'A. Rp260.000',
+      'B. Rp270.000',
+      'C. Rp300.000',
+      'D. Rp360.000',
+    ],
+    correctAnswer: 'B. Rp270.000',
+    explanation: {
+      konsepDasar:
+        'Diskon bertingkat dihitung secara berurutan dari harga sisa setelah diskon pertama, bukan dijumlahkan langsung.',
+      langkahPengerjaan: [
+        'Harga setelah diskon pertama (25%): Rp400.000 × 75% = Rp300.000.',
+        'Harga setelah diskon kedua (10% dari Rp300.000): Rp300.000 × 90% = Rp270.000.',
+      ],
+      tipsCepat:
+        'Jangan dijumlahkan jadi 35% (itu jebakan opsi A!). Kalikan 0,75 × 0,90 × 400.000 = 270.000.',
+    },
+  },
+  {
+    id: 'smp-num-4',
+    grade: 'SMP',
+    subject: 'numerasi',
+    topic: 'Aritmatika Sosial & SPLDV',
+    type: 'isian_singkat',
+    difficulty: 'HOTS',
+    stimulusTitle: 'Paket Wisata & Tiket Masuk Keraton',
+    stimulusText:
+      'Rombongan study tour membeli 3 tiket dewasa dan 2 tiket pelajar dengan total harga Rp65.000. Sementara itu, rombongan lain membeli 2 tiket dewasa dan 4 tiket pelajar dengan total harga Rp70.000.',
+    questionText:
+      'Berapa rupiah harga 1 tiket dewasa? (Tulis angkanya saja tanpa titik atau Rp)',
+    correctAnswer: '15000',
+    explanation: {
+      konsepDasar:
+        'Sistem Persamaan Linear Dua Variabel (SPLDV) diselesaikan dengan eliminasi dan substitusi.',
+      langkahPengerjaan: [
+        'Misalkan dewasa = d, pelajar = p. Persamaan (1): 3d + 2p = 65.000; Persamaan (2): 2d + 4p = 70.000.',
+        'Kalikan persamaan (1) dengan 2 agar koefisien p sama: 6d + 4p = 130.000.',
+        'Kurangkan dengan persamaan (2): (6d + 4p) − (2d + 4p) = 130.000 − 70.000 → 4d = 60.000.',
+        'Diperoleh d = 60.000 ÷ 4 = 15.000.',
+      ],
+      tipsCepat:
+        'Sederhanakan persamaan (2) dengan dibagi 2 menjadi d + 2p = 35.000, lalu langsung kurangkan dari 3d + 2p = 65.000 → 2d = 30.000 → d = 15.000!',
+    },
+  },
+  {
+    id: 'smp-num-5',
+    grade: 'SMP',
+    subject: 'numerasi',
+    topic: 'Bangun Ruang Sisi Lengkung & Pythagoras',
+    type: 'pilihan_ganda',
+    difficulty: 'Menengah',
+    stimulusTitle: 'Tandon Air Hujan di Gunungkidul',
+    stimulusText:
+      'Sebuah tandon penampungan air hujan berbentuk tabung di Kecamatan Playen, Gunungkidul, memiliki diameter alas 140 cm dan tinggi 100 cm. (Gunakan π = 22/7).',
+    questionText:
+      'Berapa liter kapasitas air maksimal yang dapat ditampung tandon tersebut?',
+    options: [
+      'A. 1.540 liter',
+      'B. 3.080 liter',
+      'C. 6.160 liter',
+      'D. 15.400 liter',
+    ],
+    correctAnswer: 'A. 1.540 liter',
+    explanation: {
+      konsepDasar:
+        'Volume tabung = π × r² × t. Pastikan memakai jari-jari (r = ½ × diameter) dan mengonversi cm³ ke liter (÷ 1.000).',
+      langkahPengerjaan: [
+        'Hitung jari-jari: r = 140 cm ÷ 2 = 70 cm (atau 7 dm).',
+        'Ubah tinggi ke dm: t = 100 cm = 10 dm.',
+        'Hitung volume dalam dm³ (liter): V = (22/7) × 7 × 7 × 10 = 22 × 7 × 10 = 1.540 liter.',
+      ],
+      tipsCepat:
+        'Selalu bagi dua diameter terlebih dahulu! Jika lupa membagi dua, hasilnya akan meleset menjadi 6.160 liter (jebakan opsi C).',
+    },
+  },
+  {
+    id: 'smp-num-6',
+    grade: 'SMP',
+    subject: 'numerasi',
+    topic: 'Barisan & Deret Aritmatika',
+    type: 'pilihan_ganda',
+    difficulty: 'Menengah',
+    stimulusTitle: 'Susunan Kursi Gedung Pertunjukan Taman Budaya',
+    stimulusText:
+      'Ruang pertunjukan di Taman Budaya Yogyakarta memiliki 12 baris kursi. Baris paling depan (baris ke-1) berisi 18 kursi, baris kedua berisi 22 kursi, baris ketiga berisi 26 kursi, dan seterusnya selalu bertambah tetap 4 kursi pada setiap baris di belakangnya.',
+    questionText: 'Berapa banyak kursi pada baris paling belakang (baris ke-12)?',
+    options: ['A. 58 kursi', 'B. 62 kursi', 'C. 66 kursi', 'D. 70 kursi'],
+    correctAnswer: 'B. 62 kursi',
+    explanation: {
+      konsepDasar:
+        'Suku ke-n barisan aritmatika dirumuskan dengan Un = a + (n − 1) × b.',
+      langkahPengerjaan: [
+        'Diketahui suku pertama a = 18, beda b = 4, dan n = 12.',
+        'U12 = 18 + (12 − 1) × 4 = 18 + 11 × 4 = 18 + 44 = 62 kursi.',
+      ],
+      tipsCepat:
+        'Dari baris ke-1 ke baris ke-12 ada 11 lompatan (12 − 1). Tinggal hitung 18 + (11 × 4) = 62.',
+    },
+  },
+  {
+    id: 'smp-sai-3',
+    grade: 'SMP',
+    subject: 'sains',
+    topic: 'Kalor, Energi, & Listrik Dinamis',
+    type: 'pilihan_ganda',
+    difficulty: 'Menengah',
+    stimulusTitle: 'Penggunaan Lampu Belajar Hemat Energi',
+    stimulusText:
+      'Rafi menggunakan 2 buah lampu belajar LED masing-masing berdaya 15 Watt dan sebuah kipas angin berdaya 45 Watt selama 4 jam setiap malam untuk belajar persiapan TKAD. Tarif dasar listrik golongan rumah tangga adalah Rp1.500 per kWh.',
+    questionText:
+      'Berapa biaya listrik yang harus dibayar untuk pemakaian peralatan tersebut selama 30 hari?',
+    options: [
+      'A. Rp9.000',
+      'B. Rp13.500',
+      'C. Rp18.000',
+      'D. Rp27.000',
+    ],
+    correctAnswer: 'B. Rp13.500',
+    explanation: {
+      konsepDasar:
+        'Energi (kWh) = (Total Daya Watt × Jam per hari × Jumlah hari) ÷ 1.000.',
+      langkahPengerjaan: [
+        'Hitung total daya: (2 × 15 Watt) + 45 Watt = 30 + 45 = 75 Watt.',
+        'Hitung total waktu selama 30 hari: 4 jam/hari × 30 hari = 120 jam.',
+        'Hitung energi dalam kWh: (75 Watt × 120 jam) ÷ 1.000 = 9.000 Wh ÷ 1.000 = 9 kWh.',
+        'Kalikan tarif: 9 kWh × Rp1.500 = Rp13.500.',
+      ],
+      tipsCepat:
+        'Jangan lupa mengalikan jumlah lampu LED (ada 2 buah lampu = 30 Watt)!',
+    },
+  },
+  {
+    id: 'smp-sai-4',
+    grade: 'SMP',
+    subject: 'sains',
+    topic: 'Kalor, Energi, & Listrik Dinamis',
+    type: 'isian_singkat',
+    difficulty: 'HOTS',
+    stimulusTitle: 'Menyeduh Wedang Uwuh Imogiri',
+    stimulusText:
+      'Untuk menyeduh wedang uwuh, 0,5 kg air bersuhu awal 28°C dipanaskan hingga mencapai suhu 88°C. Jika kalor jenis air adalah 4.200 J/kg°C, hitunglah energi kalor yang diserap air tersebut.',
+    questionText:
+      'Berapa kilojoule (kJ) energi kalor yang dibutuhkan? (Tulis angkanya saja)',
+    correctAnswer: '126',
+    explanation: {
+      konsepDasar:
+        'Kalor perubahan suhu: Q = m × c × ΔT, dengan 1 kJ = 1.000 Joule.',
+      langkahPengerjaan: [
+        'Hitung kenaikan suhu: ΔT = 88°C − 28°C = 60°C.',
+        'Hitung Q dalam Joule: Q = 0,5 kg × 4.200 J/kg°C × 60°C = 126.000 Joule.',
+        'Konversi ke kilojoule: 126.000 ÷ 1.000 = 126 kJ.',
+      ],
+      tipsCepat:
+        'Kalikan 0,5 × 60 dulu menjadi 30, lalu 30 × 4,2 kJ = 126 kJ!',
+    },
+  },
+  {
+    id: 'smp-sai-5',
+    grade: 'SMP',
+    subject: 'sains',
+    topic: 'Sistem Organ & Pewarisan Sifat',
+    type: 'pilihan_ganda',
+    difficulty: 'Menengah',
+    stimulusTitle: 'Pemuliaan Tanaman Cabai di Lahan Pasir Pantai',
+    stimulusText:
+      'Peneliti pertanian di Kulon Progo menyilangkan tanaman cabai berbuah lebat-tidak pedas (LLtt) dengan tanaman cabai berbuah sedikit-pedas (llTT). Sifat berbuah lebat (L) dan rasa pedas (T) bersifat dominan penuh. Selanjutnya, keturunan pertama (F1) disilangkan sesamanya.',
+    questionText:
+      'Jika dihasilkan 320 tanaman pada keturunan kedua (F2), berapa tanaman yang diharapkan memiliki sifat unggul berbuah lebat dan rasa pedas?',
+    options: [
+      'A. 20 tanaman',
+      'B. 60 tanaman',
+      'C. 180 tanaman',
+      'D. 240 tanaman',
+    ],
+    correctAnswer: 'C. 180 tanaman',
+    explanation: {
+      konsepDasar:
+        'Persilangan dihibrid antar-heterozigot (LlTt × LlTt) menghasilkan perbandingan fenotipe 9 : 3 : 3 : 1 (total 16 bagian).',
+      langkahPengerjaan: [
+        'F1 hasil persilangan LLtt × llTT adalah LlTt (100% lebat-pedas).',
+        'F1 × F1 (LlTt × LlTt) menghasilkan proporsi fenotipe dominan-dominan (L_T_) sebanyak 9/16 bagian.',
+        'Jumlah tanaman lebat-pedas = (9/16) × 320 = 9 × 20 = 180 tanaman.',
+      ],
+      tipsCepat:
+        'Hafalkan rasio klasik dihibrid 9 : 3 : 3 : 1. Sifat ganda dominan selalu bernilai 9/16!',
+    },
+  },
+  {
+    id: 'smp-sai-6',
+    grade: 'SMP',
+    subject: 'sains',
+    topic: 'Gaya, Tekanan, & Gerak Benda',
+    type: 'pilihan_ganda',
+    difficulty: 'Dasar',
+    stimulusTitle: 'Tekanan Hidrostatis di Embung Nglanggeran',
+    stimulusText:
+      'Embung Nglanggeran di Gunungkidul menampung air tawar dengan massa jenis 1.000 kg/m³. Sebuah katup saluran pembuangan berada pada kedalaman 3 meter di bawah permukaan air embung (percepatan gravitasi g = 10 m/s²).',
+    questionText:
+      'Besar tekanan hidrostatis yang dialami katup saluran tersebut adalah ....',
+    options: [
+      'A. 3.000 Pa',
+      'B. 10.000 Pa',
+      'C. 30.000 Pa',
+      'D. 300.000 Pa',
+    ],
+    correctAnswer: 'C. 30.000 Pa',
+    explanation: {
+      konsepDasar:
+        'Tekanan hidrostatis dirumuskan dengan Ph = ρ × g × h (h diukur dari permukaan air ke titik benda).',
+      langkahPengerjaan: [
+        'Diketahui ρ = 1.000 kg/m³, g = 10 m/s², dan kedalaman h = 3 m.',
+        'Ph = 1.000 × 10 × 3 = 30.000 N/m² (Pascal).',
+      ],
+      tipsCepat:
+        'Pastikan h adalah kedalaman dari permukaan air, bukan jarak dari dasar kolam!',
+    },
+  },
 ];
