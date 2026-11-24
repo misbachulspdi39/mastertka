@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
+import { generateWithFallback } from './_client';
 
 interface VercelReq {
   method?: string;
@@ -41,8 +41,6 @@ export default async function handler(req: VercelReq, res: VercelRes) {
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey });
-
     const { question, studentAnswer, studentProfile } = req.body || {};
     if (!question || !question.questionText) {
       res.status(400).json({ error: 'Data soal tidak lengkap.' });
@@ -66,24 +64,16 @@ Berikan penjelasan yang ringkas, jelas, dan terstruktur:
 2. **Langkah Penyelesaian Rinci & Jebakan Pengecoh**
 3. **Tips Cepat Menghadapi Soal Serupa di TKAD DIY**`;
 
-    const modelName = 'gemini-3.8-flash';
-
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: prompt,
-      config: {
-        systemInstruction:
-          'Kamu adalah Kak Mentor, guru les privat ramah asal Yogyakarta. Jelaskan analisis soal secara sabar, jernih, dan terstruktur.',
-        maxOutputTokens: 1000,
-        thinkingConfig: {
-          thinkingBudget: 256,
-        },
-      },
+    const { response, modelUsed } = await generateWithFallback(apiKey, prompt, {
+      systemInstruction:
+        'Kamu adalah Kak Mentor, guru les privat ramah asal Yogyakarta. Jelaskan analisis soal secara sabar, jernih, dan terstruktur.',
+      maxOutputTokens: 1000,
+      thinkingConfig: { thinkingBudget: 256 },
     });
 
     res.status(200).json({
       analysis: response.text?.trim() || '',
-      modelUsed: modelName,
+      modelUsed,
     });
   } catch (err: unknown) {
     const errMsg = err instanceof Error ? err.message : 'Gagal membuat analisis mendalam.';

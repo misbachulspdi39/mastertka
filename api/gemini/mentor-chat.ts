@@ -1,4 +1,4 @@
-import { GoogleGenAI } from '@google/genai';
+import { generateWithFallback } from './_client';
 
 interface VercelReq {
   method?: string;
@@ -45,8 +45,6 @@ export default async function handler(req: VercelReq, res: VercelRes) {
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey });
-
     const { message, history, studentProfile, context, deepMode } = req.body || {};
     if (!message || typeof message !== 'string') {
       res.status(400).json({ error: 'Pesan pertanyaan tidak boleh kosong.' });
@@ -86,25 +84,18 @@ Pedoman Kak Mentor:
       : '';
 
     const prompt = `${contextBlock}${historyLines ? `[RIWAYAT PERCAKAPAN]\n${historyLines}\n\n` : ''}Pertanyaan Siswa Sekarang: ${message}`;
-    
-    // Gunakan gemini-3.8-flash untuk kedua mode agar cepat dan tidak timeout di Vercel
-    const modelName = 'gemini-3.8-flash';
 
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: prompt,
-      config: {
-        systemInstruction,
-        maxOutputTokens: deepMode ? 1200 : 700,
-        thinkingConfig: {
-          thinkingBudget: deepMode ? 512 : 0, // 0 = langsung jawab kilat tanpa loading lama
-        },
+    const { response, modelUsed } = await generateWithFallback(apiKey, prompt, {
+      systemInstruction,
+      maxOutputTokens: deepMode ? 1200 : 700,
+      thinkingConfig: {
+        thinkingBudget: deepMode ? 256 : 0,
       },
     });
 
     res.status(200).json({
       reply: response.text?.trim() || 'Maaf, Kak Mentor belum bisa merangkai jawaban. Coba tanyakan sekali lagi ya!',
-      modelUsed: modelName,
+      modelUsed,
     });
   } catch (err: unknown) {
     const errMsg = err instanceof Error ? err.message : 'Terjadi kesalahan pada server.';
