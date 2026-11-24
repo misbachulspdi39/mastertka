@@ -1,0 +1,6 @@
+{
+  "name": "Mentor TKA & TKAD DIY",
+  "description": "Platform mentoring belajar pribadi berbasis AI bersama Kak Mentor untuk persiapan TKA & TKAD Daerah Istimewa Yogyakarta jenjang SD (Kelas 6) dan SMP (Kelas 9).",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
