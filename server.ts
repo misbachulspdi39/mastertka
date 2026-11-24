@@ -81,7 +81,7 @@ async function startServer() {
         return;
       }
 
-      const modelName = deepMode ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
+      const modelName = deepMode ? 'gemini-2.5-pro' : 'gemini-3.8-flash';
       const systemInstruction = buildKakMentorSystemInstruction(studentProfile || {});
 
       let contextBlock = '';
@@ -235,7 +235,7 @@ Ketentuan wajib soal:
 5. Pembahasan harus terstruktur: konsepDasar, langkahPengerjaan (array berisi 3-4 langkah jelas), dan tipsCepat.`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.8-flash',
         contents: prompt,
         config: {
           systemInstruction:

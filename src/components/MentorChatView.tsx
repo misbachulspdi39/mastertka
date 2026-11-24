@@ -27,7 +27,7 @@ export function MentorChatView({
       id: 'welcome-mentor',
       role: 'mentor',
       text: `Halo ${profile.name}, sugeng sinau! Aku Kak Mentor, guru les privatmu dari Jogja.\n\nKita lagi fokus nyiapin TKA & TKAD ${gradeLabel} buat tembus ${profile.targetSchool} ya. Ada soal yang bikin bingung atau materi yang ingin kita bedah pelan-pelan hari ini? Ceritakan saja, nanti Kak Mentor bimbing langkah demi langkah!`,
-      modelUsed: 'gemini-2.5-flash',
+      modelUsed: 'gemini-3.8-flash',
       timestamp: new Date().toISOString(),
     },
   ]);

@@ -89,7 +89,7 @@ Pedoman Kak Mentor:
       : '';
 
     const prompt = `${contextBlock}${historyLines ? `[RIWAYAT PERCAKAPAN]\n${historyLines}\n\n` : ''}Pertanyaan Siswa Sekarang: ${message}`;
-    const modelName = deepMode ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
+    const modelName = deepMode ? 'gemini-2.5-pro' : 'gemini-3.8-flash';
 
     const response = await ai.models.generateContent({
       model: modelName,

@@ -49,7 +49,7 @@ export async function askKakMentor(params: {
 
   return {
     reply: data.reply || '',
-    modelUsed: data.modelUsed || 'gemini-2.5-flash',
+    modelUsed: data.modelUsed || 'gemini-3.8-flash',
   };
 }
 
