@@ -15,7 +15,13 @@ interface VercelRes {
   status: (code: number) => { json: (data: unknown) => void };
 }
 
-const MODELS = ['gemini-3.8-flash', 'gemini-3.8-flash-lite', 'gemini-3.0-flash'];
+function getApiKeys(): string[] {
+  return [
+    process.env.GEMINI_API_KEY,
+    process.env.GEMINI_API_KEY_2,
+    process.env.GEMINI_API_KEY_3,
+  ].filter((k): k is string => Boolean(k && k !== 'MY_GEMINI_API_KEY'));
+}
 
 export default async function handler(req: VercelReq, res: VercelRes) {
   if (req.method !== 'POST') {
@@ -23,8 +29,8 @@ export default async function handler(req: VercelReq, res: VercelRes) {
     return;
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
+  const apiKeys = getApiKeys();
+  if (apiKeys.length === 0) {
     res.status(503).json({
       error: 'Layanan AI belum aktif karena GEMINI_API_KEY belum terpasang di server.',
     });
@@ -32,7 +38,6 @@ export default async function handler(req: VercelReq, res: VercelRes) {
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey });
     const {
       grade = 'SD',
       subject = 'numerasi',
@@ -55,10 +60,11 @@ export default async function handler(req: VercelReq, res: VercelRes) {
     let responseText = '[]';
     let lastError: unknown;
 
-    for (const model of MODELS) {
+    for (let i = 0; i < apiKeys.length; i++) {
       try {
+        const ai = new GoogleGenAI({ apiKey: apiKeys[i] });
         const response = await ai.models.generateContent({
-          model,
+          model: 'gemini-3.8-flash',
           contents: prompt,
           config: {
             systemInstruction:
@@ -110,6 +116,7 @@ export default async function handler(req: VercelReq, res: VercelRes) {
         lastError = err;
         const msg = err instanceof Error ? err.message : String(err);
         if (msg.includes('503') || msg.includes('UNAVAILABLE') || msg.includes('429')) {
+          await new Promise((resolve) => setTimeout(resolve, 600));
           continue;
         }
         throw err;
@@ -151,7 +158,11 @@ export default async function handler(req: VercelReq, res: VercelRes) {
 
     res.status(200).json({ questions: normalized });
   } catch (err: unknown) {
-    const errMsg = err instanceof Error ? err.message : 'Gagal membuat soal baru dengan AI.';
-    res.status(500).json({ error: errMsg });
+    const rawMsg = err instanceof Error ? err.message : '';
+    const friendlyMsg =
+      rawMsg.includes('503') || rawMsg.includes('UNAVAILABLE') || rawMsg.includes('429')
+        ? 'Semua jalur server AI Google sedang padat antrean sesaat. Tunggu beberapa detik lalu coba klik ulang ya!'
+        : rawMsg || 'Gagal membuat soal baru dengan AI.';
+    res.status(500).json({ error: friendlyMsg });
   }
 }

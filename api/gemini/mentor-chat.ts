@@ -30,7 +30,13 @@ interface VercelRes {
   status: (code: number) => { json: (data: unknown) => void };
 }
 
-const MODELS = ['gemini-3.8-flash', 'gemini-3.8-flash-lite', 'gemini-3.0-flash'];
+function getApiKeys(): string[] {
+  return [
+    process.env.GEMINI_API_KEY,
+    process.env.GEMINI_API_KEY_2,
+    process.env.GEMINI_API_KEY_3,
+  ].filter((k): k is string => Boolean(k && k !== 'MY_GEMINI_API_KEY'));
+}
 
 export default async function handler(req: VercelReq, res: VercelRes) {
   if (req.method !== 'POST') {
@@ -38,8 +44,8 @@ export default async function handler(req: VercelReq, res: VercelRes) {
     return;
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
+  const apiKeys = getApiKeys();
+  if (apiKeys.length === 0) {
     res.status(503).json({
       error: 'Layanan AI belum aktif karena GEMINI_API_KEY belum terpasang di server.',
     });
@@ -47,7 +53,6 @@ export default async function handler(req: VercelReq, res: VercelRes) {
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey });
     const { message, history, studentProfile, context, deepMode } = req.body || {};
 
     if (!message || typeof message !== 'string') {
@@ -60,12 +65,16 @@ export default async function handler(req: VercelReq, res: VercelRes) {
     const targetSchool = studentProfile?.targetSchool?.trim() || 'sekolah impian di DIY';
     const targetScore = studentProfile?.targetScore || 85;
 
+    const modeRule = deepMode
+      ? 'Berikan penjelasan mendalam, langkah demi langkah yang lengkap, beserta contoh penerapannya.'
+      : 'Berikan jawaban ringkas, langsung ke inti, maksimal 2-3 paragraf pendek.';
+
     const systemInstruction = `Kamu adalah "Kak Mentor", guru les privat profesional asli Yogyakarta yang ramah, sabar, dan berpengalaman membimbing siswa menghadapi TKA dan TKAD DIY.
 Profil siswa: Nama ${studentName}, Jenjang ${gradeLabel}, Target ${targetSchool} (nilai ${targetScore}).
 Pedoman:
 1. Gunakan bahasa Indonesia hangat dan sapaan khas Jogja ("Halo ${studentName}", "Pelan-pelan saja nggih", "Cah hebat!").
 2. METODE SCAFFOLDING: Jangan langsung memberi jawaban akhir jika soal belum selesai dikerjakan. Bimbing langkah demi langkah.
-3. Jelaskan dengan jernih, runtut, dan padat.`;
+3. ${modeRule}`;
 
     let contextBlock = '';
     if (context?.type === 'material') {
@@ -76,43 +85,54 @@ Pedoman:
 
     const historyLines = Array.isArray(history)
       ? history
-          .slice(-6)
+          .slice(-4)
           .map((m) => `${m.role === 'user' ? 'Siswa' : 'Kak Mentor'}: ${m.text || ''}`)
           .join('\n')
       : '';
 
     const prompt = `${contextBlock}${historyLines ? `[RIWAYAT]\n${historyLines}\n\n` : ''}Pertanyaan Siswa: ${message}`;
 
-    let lastError: unknown;
-    for (const model of MODELS) {
+    let isBusy = false;
+
+    // Putar semua API Key yang tersedia secara bergantian
+    for (let i = 0; i < apiKeys.length; i++) {
       try {
+        const ai = new GoogleGenAI({ apiKey: apiKeys[i] });
         const response = await ai.models.generateContent({
-          model,
+          model: 'gemini-3.8-flash',
           contents: prompt,
           config: {
             systemInstruction,
-            maxOutputTokens: deepMode ? 1200 : 700,
-            thinkingConfig: { thinkingBudget: deepMode ? 256 : 0 },
+            maxOutputTokens: deepMode ? 900 : 450,
+            thinkingConfig: { thinkingBudget: 0 },
           },
         });
         res.status(200).json({
           reply: response.text?.trim() || 'Coba tanyakan sekali lagi ya!',
-          modelUsed: model,
+          modelUsed: `gemini-3.8-flash (key-${i + 1})`,
         });
         return;
       } catch (err: unknown) {
-        lastError = err;
         const msg = err instanceof Error ? err.message : String(err);
         if (msg.includes('503') || msg.includes('UNAVAILABLE') || msg.includes('429')) {
+          isBusy = true;
+          await new Promise((resolve) => setTimeout(resolve, 600));
           continue;
         }
         throw err;
       }
     }
 
-    throw lastError;
+    if (isBusy) {
+      res.status(503).json({
+        error:
+          'Semua jalur server AI Google sedang padat antrean sesaat. Tunggu 3 detik lalu klik Kirim ulang nggih!',
+      });
+      return;
+    }
   } catch (err: unknown) {
-    const errMsg = err instanceof Error ? err.message : 'Terjadi kesalahan pada server.';
+    const errMsg =
+      err instanceof Error ? err.message : 'Terjadi gangguan sementara pada server AI.';
     res.status(500).json({ error: errMsg });
   }
 }
