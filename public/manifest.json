@@ -1,0 +1,30 @@
+{
+  "name": "Mentor TKA & TKAD DIY",
+  "short_name": "Mentor TKAD",
+  "description": "Aplikasi belajar dan bimbingan AI persiapan TKA & TKAD Daerah Istimewa Yogyakarta untuk siswa SD dan SMP.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0284c7",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

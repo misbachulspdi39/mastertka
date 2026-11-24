@@ -30,12 +30,50 @@ interface VercelRes {
   status: (code: number) => { json: (data: unknown) => void };
 }
 
-function getApiKeys(): string[] {
+function getGeminiKeys(): string[] {
   return [
     process.env.GEMINI_API_KEY,
     process.env.GEMINI_API_KEY_2,
     process.env.GEMINI_API_KEY_3,
   ].filter((k): k is string => Boolean(k && k !== 'MY_GEMINI_API_KEY'));
+}
+
+async function callGroqChat(
+  systemInstruction: string,
+  prompt: string,
+  maxTokens: number
+): Promise<string> {
+  const groqKey = process.env.GROQ_API_KEY;
+  if (!groqKey) {
+    throw new Error('GROQ_API_KEY belum terpasang.');
+  }
+
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${groqKey}`,
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        { role: 'system', content: systemInstruction },
+        { role: 'user', content: prompt },
+      ],
+      max_tokens: maxTokens,
+      temperature: 0.6,
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Groq error (${response.status}): ${errText}`);
+  }
+
+  const data = (await response.json()) as {
+    choices?: Array<{ message?: { content?: string } }>;
+  };
+  return data.choices?.[0]?.message?.content?.trim() || '';
 }
 
 export default async function handler(req: VercelReq, res: VercelRes) {
@@ -44,10 +82,12 @@ export default async function handler(req: VercelReq, res: VercelRes) {
     return;
   }
 
-  const apiKeys = getApiKeys();
-  if (apiKeys.length === 0) {
+  const geminiKeys = getGeminiKeys();
+  const groqKey = process.env.GROQ_API_KEY;
+
+  if (geminiKeys.length === 0 && !groqKey) {
     res.status(503).json({
-      error: 'Layanan AI belum aktif karena GEMINI_API_KEY belum terpasang di server.',
+      error: 'Layanan AI belum aktif karena API Key belum terpasang di server.',
     });
     return;
   }
@@ -91,19 +131,18 @@ Pedoman:
       : '';
 
     const prompt = `${contextBlock}${historyLines ? `[RIWAYAT]\n${historyLines}\n\n` : ''}Pertanyaan Siswa: ${message}`;
+    const maxTokens = deepMode ? 900 : 450;
 
-    let isBusy = false;
-
-    // Putar semua API Key yang tersedia secara bergantian
-    for (let i = 0; i < apiKeys.length; i++) {
+    // 1. Coba jalur utama: Gemini (rotasi semua API Key yang tersedia)
+    for (let i = 0; i < geminiKeys.length; i++) {
       try {
-        const ai = new GoogleGenAI({ apiKey: apiKeys[i] });
+        const ai = new GoogleGenAI({ apiKey: geminiKeys[i] });
         const response = await ai.models.generateContent({
           model: 'gemini-3.8-flash',
           contents: prompt,
           config: {
             systemInstruction,
-            maxOutputTokens: deepMode ? 900 : 450,
+            maxOutputTokens: maxTokens,
             thinkingConfig: { thinkingBudget: 0 },
           },
         });
@@ -115,24 +154,35 @@ Pedoman:
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);
         if (msg.includes('503') || msg.includes('UNAVAILABLE') || msg.includes('429')) {
-          isBusy = true;
-          await new Promise((resolve) => setTimeout(resolve, 600));
+          await new Promise((resolve) => setTimeout(resolve, 400));
           continue;
         }
+        // Jika error lain selain sibuk dan Groq tersedia, lanjut ke Groq
+        if (groqKey) break;
         throw err;
       }
     }
 
-    if (isBusy) {
-      res.status(503).json({
-        error:
-          'Semua jalur server AI Google sedang padat antrean sesaat. Tunggu 3 detik lalu klik Kirim ulang nggih!',
+    // 2. Jalur cadangan kilat: Groq (Llama 3.3 70B)
+    if (groqKey) {
+      const groqReply = await callGroqChat(systemInstruction, prompt, maxTokens);
+      res.status(200).json({
+        reply: groqReply || 'Coba tanyakan sekali lagi ya!',
+        modelUsed: 'groq-llama-3.3-70b',
       });
       return;
     }
+
+    res.status(503).json({
+      error:
+        'Semua jalur server AI sedang padat antrean sesaat. Tunggu 3 detik lalu klik Kirim ulang nggih!',
+    });
   } catch (err: unknown) {
-    const errMsg =
-      err instanceof Error ? err.message : 'Terjadi gangguan sementara pada server AI.';
-    res.status(500).json({ error: errMsg });
+    const rawMsg = err instanceof Error ? err.message : '';
+    const friendlyMsg =
+      rawMsg.includes('503') || rawMsg.includes('UNAVAILABLE') || rawMsg.includes('429')
+        ? 'Semua jalur server AI sedang padat antrean sesaat. Tunggu beberapa detik lalu coba klik ulang ya!'
+        : rawMsg || 'Terjadi gangguan sementara pada server AI.';
+    res.status(500).json({ error: friendlyMsg });
   }
 }

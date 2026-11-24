@@ -15,12 +15,70 @@ interface VercelRes {
   status: (code: number) => { json: (data: unknown) => void };
 }
 
-function getApiKeys(): string[] {
+function getGeminiKeys(): string[] {
   return [
     process.env.GEMINI_API_KEY,
     process.env.GEMINI_API_KEY_2,
     process.env.GEMINI_API_KEY_3,
   ].filter((k): k is string => Boolean(k && k !== 'MY_GEMINI_API_KEY'));
+}
+
+async function callGroqQuestions(prompt: string): Promise<unknown[]> {
+  const groqKey = process.env.GROQ_API_KEY;
+  if (!groqKey) {
+    throw new Error('GROQ_API_KEY belum terpasang.');
+  }
+
+  const systemPrompt = `Kamu adalah penulis soal TKA & TKAD Dinas Pendidikan DIY.
+Output WAJIB berupa JSON valid dengan format objek:
+{
+  "questions": [
+    {
+      "topic": "string",
+      "type": "pilihan_ganda",
+      "difficulty": "Dasar | Menengah | HOTS",
+      "stimulusTitle": "string",
+      "stimulusText": "string",
+      "questionText": "string",
+      "options": ["A. ...", "B. ...", "C. ...", "D. ..."],
+      "correctAnswer": "teks lengkap pilihan yang benar (contoh: A. ...)",
+      "explanation": {
+        "konsepDasar": "string",
+        "langkahPengerjaan": ["langkah 1", "langkah 2"],
+        "tipsCepat": "string"
+      }
+    }
+  ]
+}`;
+
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${groqKey}`,
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: prompt },
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0.6,
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Groq error (${response.status}): ${errText}`);
+  }
+
+  const data = (await response.json()) as {
+    choices?: Array<{ message?: { content?: string } }>;
+  };
+  const rawJson = data.choices?.[0]?.message?.content || '{"questions":[]}';
+  const parsed = JSON.parse(rawJson) as { questions?: unknown[] };
+  return Array.isArray(parsed.questions) ? parsed.questions : [];
 }
 
 export default async function handler(req: VercelReq, res: VercelRes) {
@@ -29,10 +87,12 @@ export default async function handler(req: VercelReq, res: VercelRes) {
     return;
   }
 
-  const apiKeys = getApiKeys();
-  if (apiKeys.length === 0) {
+  const geminiKeys = getGeminiKeys();
+  const groqKey = process.env.GROQ_API_KEY;
+
+  if (geminiKeys.length === 0 && !groqKey) {
     res.status(503).json({
-      error: 'Layanan AI belum aktif karena GEMINI_API_KEY belum terpasang di server.',
+      error: 'Layanan AI belum aktif karena API Key belum terpasang di server.',
     });
     return;
   }
@@ -57,12 +117,13 @@ export default async function handler(req: VercelReq, res: VercelRes) {
 
     const prompt = `Buatlah ${safeCount} soal latihan baru berstandar TKA & TKAD DIY untuk jenjang ${gradeLabel}, mata uji ${subjectLabel}, topik "${topic}", tingkat kesulitan "${difficulty}" dengan stimulus kearifan lokal Daerah Istimewa Yogyakarta. Pastikan opsi pilihan ganda diawali huruf A., B., C., D. dan correctAnswer berisi teks lengkap pilihan yang benar.`;
 
-    let responseText = '[]';
+    let rawQuestions: unknown[] | null = null;
     let lastError: unknown;
 
-    for (let i = 0; i < apiKeys.length; i++) {
+    // 1. Coba jalur utama: Gemini
+    for (let i = 0; i < geminiKeys.length; i++) {
       try {
-        const ai = new GoogleGenAI({ apiKey: apiKeys[i] });
+        const ai = new GoogleGenAI({ apiKey: geminiKeys[i] });
         const response = await ai.models.generateContent({
           model: 'gemini-3.8-flash',
           contents: prompt,
@@ -109,47 +170,59 @@ export default async function handler(req: VercelReq, res: VercelRes) {
             },
           },
         });
-        responseText = (response.text || '[]').trim();
+        const parsed = JSON.parse((response.text || '[]').trim());
+        rawQuestions = Array.isArray(parsed) ? parsed : [];
         lastError = null;
         break;
       } catch (err: unknown) {
         lastError = err;
         const msg = err instanceof Error ? err.message : String(err);
         if (msg.includes('503') || msg.includes('UNAVAILABLE') || msg.includes('429')) {
-          await new Promise((resolve) => setTimeout(resolve, 600));
+          await new Promise((resolve) => setTimeout(resolve, 400));
           continue;
         }
+        if (groqKey) break;
         throw err;
       }
     }
 
-    if (lastError) throw lastError;
+    // 2. Jalur cadangan kilat: Groq
+    if (rawQuestions === null && groqKey) {
+      rawQuestions = await callGroqQuestions(prompt);
+      lastError = null;
+    }
 
-    const parsed = JSON.parse(responseText);
+    if (lastError && rawQuestions === null) throw lastError;
+
     const nowIso = new Date().toISOString();
-
-    const normalized = (Array.isArray(parsed) ? parsed : []).map((q, idx) => {
+    const normalized = (rawQuestions || []).map((item, idx) => {
+      const q = item as Record<string, unknown>;
+      const exp = (q.explanation || {}) as Record<string, unknown>;
       const qType = q.type === 'isian_singkat' ? 'isian_singkat' : 'pilihan_ganda';
       const diff =
         q.difficulty === 'Dasar' || q.difficulty === 'HOTS' ? q.difficulty : 'Menengah';
+
       return {
         id: `ai-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`,
         grade: grade === 'SMP' ? 'SMP' : 'SD',
         subject: subject === 'literasi' || subject === 'sains' ? subject : 'numerasi',
-        topic: q.topic || topic,
+        topic: String(q.topic || topic),
         type: qType,
         difficulty: diff,
-        stimulusTitle: q.stimulusTitle || `Konteks ${topic}`,
-        stimulusText: q.stimulusText || '',
-        questionText: q.questionText || '',
-        options: qType === 'pilihan_ganda' && Array.isArray(q.options) ? q.options : undefined,
+        stimulusTitle: String(q.stimulusTitle || `Konteks ${topic}`),
+        stimulusText: String(q.stimulusText || ''),
+        questionText: String(q.questionText || ''),
+        options:
+          qType === 'pilihan_ganda' && Array.isArray(q.options)
+            ? q.options.map(String)
+            : undefined,
         correctAnswer: String(q.correctAnswer || ''),
         explanation: {
-          konsepDasar: q.explanation?.konsepDasar || '',
-          langkahPengerjaan: Array.isArray(q.explanation?.langkahPengerjaan)
-            ? q.explanation.langkahPengerjaan
+          konsepDasar: String(exp.konsepDasar || ''),
+          langkahPengerjaan: Array.isArray(exp.langkahPengerjaan)
+            ? exp.langkahPengerjaan.map(String)
             : [],
-          tipsCepat: q.explanation?.tipsCepat || '',
+          tipsCepat: String(exp.tipsCepat || ''),
         },
         isAiGenerated: true,
         createdAt: nowIso,
@@ -161,7 +234,7 @@ export default async function handler(req: VercelReq, res: VercelRes) {
     const rawMsg = err instanceof Error ? err.message : '';
     const friendlyMsg =
       rawMsg.includes('503') || rawMsg.includes('UNAVAILABLE') || rawMsg.includes('429')
-        ? 'Semua jalur server AI Google sedang padat antrean sesaat. Tunggu beberapa detik lalu coba klik ulang ya!'
+        ? 'Semua jalur server AI sedang padat antrean sesaat. Tunggu beberapa detik lalu coba klik ulang ya!'
         : rawMsg || 'Gagal membuat soal baru dengan AI.';
     res.status(500).json({ error: friendlyMsg });
   }
