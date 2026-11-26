@@ -1,6 +1,6 @@
 export type GradeLevel = 'SD' | 'SMP';
 
-export type SubjectId = 'literasi' | 'numerasi' | 'sains';
+export type SubjectId = 'literasi' | 'numerasi' | 'sains' | 'inggris';
 
 export type QuestionType = 'pilihan_ganda' | 'isian_singkat';
 

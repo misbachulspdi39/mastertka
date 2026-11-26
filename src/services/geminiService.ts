@@ -19,10 +19,16 @@ export interface ChatContextPayload {
   explanationText?: string;
 }
 
+export interface MentorReplyPayload {
+  reply: string;
+  text: string;
+  modelUsed?: string;
+}
+
 async function postJsonSafe<T>(
   url: string,
   payload: unknown,
-  timeoutMs = 9500,
+  timeoutMs = 14500,
   externalSignal?: AbortSignal
 ): Promise<T> {
   const controller = new AbortController();
@@ -66,7 +72,7 @@ async function postJsonSafe<T>(
       throw new Error(
         externalSignal?.aborted
           ? 'Permintaan dibatalkan.'
-          : 'Waktu tunggu server habis (>9 detik). Silakan klik ulang agar dialihkan ke jalur cepat!'
+          : 'Waktu tunggu server habis (>14 detik). Silakan klik ulang agar dialihkan ke jalur cepat!'
       );
     }
     throw err;
@@ -105,7 +111,7 @@ export async function askKakMentor(params: {
   context?: ChatContextPayload;
   deepMode?: boolean;
   signal?: AbortSignal;
-}): Promise<string> {
+}): Promise<MentorReplyPayload> {
   const trimmedContext = params.context
     ? {
         ...params.context,
@@ -115,7 +121,7 @@ export async function askKakMentor(params: {
       }
     : undefined;
 
-  const data = await postJsonSafe<{ reply?: string; text?: string }>(
+  const data = await postJsonSafe<{ reply?: string; text?: string; modelUsed?: string }>(
     '/api/gemini/mentor-chat',
     {
       message: params.message,
@@ -124,11 +130,16 @@ export async function askKakMentor(params: {
       context: trimmedContext,
       deepMode: Boolean(params.deepMode),
     },
-    9500,
+    14500,
     params.signal
   );
 
-  return data.reply || data.text || 'Coba tanyakan sekali lagi ya!';
+  const finalReply = data.reply || data.text || 'Coba tanyakan sekali lagi ya!';
+  return {
+    reply: finalReply,
+    text: finalReply,
+    modelUsed: data.modelUsed,
+  };
 }
 
 export async function generateAiQuestions(params: {
@@ -148,7 +159,7 @@ export async function generateAiQuestions(params: {
       count: params.count,
       difficulty: params.difficulty,
     },
-    9500,
+    14500,
     params.signal
   );
 
@@ -180,7 +191,7 @@ export async function requestDeepExplanation(params: {
       studentAnswer: params.studentAnswer,
       studentProfile: params.studentProfile,
     },
-    9500,
+    14500,
     params.signal
   );
 

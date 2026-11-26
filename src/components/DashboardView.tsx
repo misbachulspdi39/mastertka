@@ -4,7 +4,6 @@ import {
   BookOpen,
   Clock,
   MessageSquare,
-  Target,
   TrendingUp,
 } from 'lucide-react';
 import { SUBJECT_META } from '../data/initialQuestions';
@@ -54,26 +53,29 @@ export function DashboardView({
     studiedMaterialIds.includes(m.id)
   ).length;
 
-  const subjectStats = (['literasi', 'numerasi', 'sains'] as SubjectId[]).map(
-    (subject) => {
-      const subAttempts = gradeAttempts.filter((a) => a.subject === subject);
-      const subCorrect = subAttempts.filter((a) => a.isCorrect).length;
-      const subAcc =
-        subAttempts.length > 0
-          ? Math.round((subCorrect / subAttempts.length) * 100)
-          : null;
-      const availableCount = gradeQuestions.filter(
-        (q) => q.subject === subject
-      ).length;
-      return {
-        subject,
-        meta: SUBJECT_META[subject],
-        attemptsCount: subAttempts.length,
-        accuracy: subAcc,
-        availableCount,
-      };
-    }
-  );
+  const activeSubjects: SubjectId[] =
+    profile.grade === 'SMP'
+      ? ['literasi', 'numerasi', 'sains', 'inggris']
+      : ['literasi', 'numerasi', 'sains'];
+
+  const subjectStats = activeSubjects.map((subject) => {
+    const subAttempts = gradeAttempts.filter((a) => a.subject === subject);
+    const subCorrect = subAttempts.filter((a) => a.isCorrect).length;
+    const subAcc =
+      subAttempts.length > 0
+        ? Math.round((subCorrect / subAttempts.length) * 100)
+        : null;
+    const availableCount = gradeQuestions.filter(
+      (q) => q.subject === subject
+    ).length;
+    return {
+      subject,
+      meta: SUBJECT_META[subject],
+      attemptsCount: subAttempts.length,
+      accuracy: subAcc,
+      availableCount,
+    };
+  });
 
   // Recommend topics: unpracticed topics or lowest accuracy topics
   const topicStatsMap = new Map<
@@ -216,7 +218,9 @@ export function DashboardView({
             {studiedCount} / {gradeMaterials.length}
           </div>
           <div className="mt-1 text-xs text-slate-500">
-            Modul Literasi, Numerasi, &amp; Sains
+            {profile.grade === 'SMP'
+              ? 'Modul Literasi, Numerasi, Sains, & B. Inggris'
+              : 'Modul Literasi, Numerasi, & Sains'}
           </div>
         </div>
 

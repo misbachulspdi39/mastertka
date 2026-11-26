@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   BookCheck,
   BookOpen,
@@ -30,6 +30,12 @@ export function MaterialsView({
   const [selectedSubject, setSelectedSubject] = useState<'all' | SubjectId>('all');
   const [brokenImages, setBrokenImages] = useState<Record<string, boolean>>({});
 
+  useEffect(() => {
+    if (grade === 'SD' && selectedSubject === 'inggris') {
+      setSelectedSubject('all');
+    }
+  }, [grade, selectedSubject]);
+
   const gradeMaterials = materials.filter(
     (m) =>
       m.grade === grade &&
@@ -37,6 +43,22 @@ export function MaterialsView({
   );
 
   const gradeLabel = grade === 'SD' ? 'SD Kelas 6' : 'SMP Kelas 9';
+
+  const filterTabs: { id: 'all' | SubjectId; label: string }[] =
+    grade === 'SMP'
+      ? [
+          { id: 'all', label: 'Semua' },
+          { id: 'literasi', label: 'Literasi' },
+          { id: 'numerasi', label: 'Numerasi' },
+          { id: 'sains', label: 'Sains' },
+          { id: 'inggris', label: 'B. Inggris' },
+        ]
+      : [
+          { id: 'all', label: 'Semua' },
+          { id: 'literasi', label: 'Literasi' },
+          { id: 'numerasi', label: 'Numerasi' },
+          { id: 'sains', label: 'Sains' },
+        ];
 
   return (
     <div className="space-y-6">
@@ -58,16 +80,9 @@ export function MaterialsView({
         <div
           role="tablist"
           aria-label="Filter Mata Uji"
-          className="inline-flex items-center gap-1 p-1 bg-slate-100 border border-slate-200 rounded-xl self-start"
+          className="inline-flex flex-wrap items-center gap-1 p-1 bg-slate-100 border border-slate-200 rounded-xl self-start"
         >
-          {(
-            [
-              { id: 'all', label: 'Semua' },
-              { id: 'literasi', label: 'Literasi' },
-              { id: 'numerasi', label: 'Numerasi' },
-              { id: 'sains', label: 'Sains' },
-            ] as const
-          ).map((tab) => (
+          {filterTabs.map((tab) => (
             <button
               key={tab.id}
               type="button"

@@ -23,9 +23,12 @@ export function AiGeneratorModal({
   onClose,
   onQuestionsGenerated,
 }: AiGeneratorModalProps) {
-  const [subject, setSubject] = useState<SubjectId>(defaultSubject);
+  const safeInitialSubject: SubjectId =
+    grade === 'SD' && defaultSubject === 'inggris' ? 'numerasi' : defaultSubject;
+
+  const [subject, setSubject] = useState<SubjectId>(safeInitialSubject);
   const [topic, setTopic] = useState<string>(
-    defaultTopic || availableTopicsBySubject[defaultSubject][0] || 'Umum'
+    defaultTopic || availableTopicsBySubject[safeInitialSubject]?.[0] || 'Umum'
   );
   const [customTopic, setCustomTopic] = useState('');
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('Menengah');
@@ -37,11 +40,17 @@ export function AiGeneratorModal({
 
   useEffect(() => {
     if (isOpen) {
-      setSubject(defaultSubject);
-      setTopic(defaultTopic || availableTopicsBySubject[defaultSubject]?.[0] || 'Umum');
+      const validSub: SubjectId =
+        grade === 'SD' && defaultSubject === 'inggris'
+          ? 'numerasi'
+          : defaultSubject;
+      setSubject(validSub);
+      setTopic(
+        defaultTopic || availableTopicsBySubject[validSub]?.[0] || 'Umum'
+      );
       setErrorMsg(null);
     }
-  }, [isOpen, defaultSubject, defaultTopic, availableTopicsBySubject]);
+  }, [isOpen, grade, defaultSubject, defaultTopic, availableTopicsBySubject]);
 
   useEffect(() => {
     return () => {
@@ -50,6 +59,11 @@ export function AiGeneratorModal({
   }, []);
 
   if (!isOpen) return null;
+
+  const subjectOptions: SubjectId[] =
+    grade === 'SMP'
+      ? ['literasi', 'numerasi', 'sains', 'inggris']
+      : ['literasi', 'numerasi', 'sains'];
 
   const topicsForSubject = availableTopicsBySubject[subject] || [];
   const gradeLabel = grade === 'SD' ? 'SD Kelas 6' : 'SMP Kelas 9';
@@ -153,8 +167,12 @@ export function AiGeneratorModal({
             <span className="block text-xs font-semibold text-slate-700 mb-1.5">
               Mata Uji
             </span>
-            <div className="grid grid-cols-3 gap-2">
-              {(['literasi', 'numerasi', 'sains'] as SubjectId[]).map((sub) => (
+            <div
+              className={`grid gap-2 ${
+                grade === 'SMP' ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'
+              }`}
+            >
+              {subjectOptions.map((sub) => (
                 <button
                   key={sub}
                   type="button"
@@ -207,7 +225,11 @@ export function AiGeneratorModal({
               value={customTopic}
               disabled={loading}
               onChange={(e) => setCustomTopic(e.target.value)}
-              placeholder="Misal: Teorema Pythagoras, Kalimat Efektif, Tata Surya"
+              placeholder={
+                subject === 'inggris'
+                  ? 'Misal: Narrative Text, Notice & Caution, Simple Past Tense'
+                  : 'Misal: Teorema Pythagoras, Kalimat Efektif, Tata Surya'
+              }
               className="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 disabled:opacity-60"
             />
           </div>

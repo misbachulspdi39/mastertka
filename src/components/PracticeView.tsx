@@ -73,7 +73,7 @@ export function PracticeView({
   const [examFinished, setExamFinished] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(0);
 
-  // Deep explanation (gemini-2.5-pro) state per question
+  // Deep explanation state per question
   const [deepAnalyses, setDeepAnalyses] = useState<Record<string, string>>({});
   const [deepLoadingId, setDeepLoadingId] = useState<string | null>(null);
   const [deepError, setDeepError] = useState<string | null>(null);
@@ -157,7 +157,7 @@ export function PracticeView({
     setDraftAnswers({});
     setExamFinished(false);
     setCurrentIdx(0);
-    setSecondsLeft(Math.max(activeQuestions.length * 120, 180)); // 2 menit per soal, minimal 3 menit
+    setSecondsLeft(Math.max(activeQuestions.length * 120, 180));
     setExamStarted(true);
   };
 
@@ -207,7 +207,11 @@ export function PracticeView({
         studentAnswer: draftAnswers[q.id] || '',
         studentProfile: profile,
       });
-      setDeepAnalyses((prev) => ({ ...prev, [q.id]: res.analysis }));
+      const textResult =
+        typeof res === 'string'
+          ? res
+          : (res as { analysis?: string }).analysis || '';
+      setDeepAnalyses((prev) => ({ ...prev, [q.id]: textResult }));
     } catch (err: unknown) {
       setDeepError(
         err instanceof Error ? err.message : 'Gagal memuat analisis mendalam.'
@@ -303,6 +307,13 @@ export function PracticeView({
   const generatorSubject: SubjectId =
     selectedSubject === 'all' ? 'numerasi' : selectedSubject;
 
+  const currentDeepAnalysis = currentQuestion
+    ? deepAnalyses[currentQuestion.id]
+    : undefined;
+  const currentChats = currentQuestion
+    ? questionChats[currentQuestion.id] || []
+    : [];
+
   return (
     <div className="space-y-6">
       {/* Control Toolbar */}
@@ -350,6 +361,9 @@ export function PracticeView({
             <option value="literasi">Literasi Membaca</option>
             <option value="numerasi">Numerasi &amp; Matematika</option>
             <option value="sains">Literasi Sains &amp; IPA</option>
+            {profile.grade === 'SMP' && (
+              <option value="inggris">Bahasa Inggris (TKAD SMP)</option>
+            )}
           </select>
 
           <select
@@ -498,7 +512,7 @@ export function PracticeView({
             <div className="lg:col-span-8 space-y-6">
               {currentQuestion && (
                 <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-8 space-y-6">
-                  {/* Question Metadata Header (Zero-pill discipline) */}
+                  {/* Question Metadata Header */}
                   <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
                     <div className="text-xs text-slate-500 flex flex-wrap items-center gap-2">
                       <span className="font-semibold text-slate-800 tabular-nums">
@@ -769,138 +783,143 @@ export function PracticeView({
                       {deepLoadingId === currentQuestion.id ? (
                         <>
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          <span>Menganalisis (Pro)...</span>
+                          <span>Menganalisis...</span>
                         </>
                       ) : (
-                        <span>Minta Analisis Mendalam (Pro)</span>
+                        <span>Analisis Mendalam AI</span>
                       )}
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-4">
+                  {deepError && (
+                    <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800">
+                      {deepError}
+                    </div>
+                  )}
+
+                  <div className="space-y-4 text-sm text-slate-700 leading-relaxed">
                     <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                      <div className="text-xs font-semibold text-slate-500 mb-1">
+                      <div className="text-xs font-bold uppercase tracking-wide text-slate-500">
                         01. Konsep Dasar
                       </div>
-                      <p className="text-sm text-slate-800 leading-relaxed">
+                      <p className="mt-1 text-slate-800">
                         {currentQuestion.explanation.konsepDasar}
                       </p>
                     </div>
 
                     <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-                      <div className="text-xs font-semibold text-slate-500 mb-2">
+                      <div className="text-xs font-bold uppercase tracking-wide text-slate-500">
                         02. Langkah Pengerjaan
                       </div>
-                      <ol className="space-y-2 text-sm text-slate-800">
+                      <ol className="mt-2 list-decimal list-inside space-y-1.5 text-slate-800">
                         {currentQuestion.explanation.langkahPengerjaan.map(
-                          (step, i) => (
-                            <li key={i} className="flex items-start gap-2.5">
-                              <span className="font-mono text-xs font-semibold text-sky-700 mt-0.5 tabular-nums">
-                                {i + 1}.
-                              </span>
-                              <span className="leading-relaxed">{step}</span>
-                            </li>
+                          (step, idx) => (
+                            <li key={idx}>{step}</li>
                           )
                         )}
                       </ol>
                     </div>
 
                     <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200">
-                      <div className="text-xs font-semibold text-amber-800 mb-1">
+                      <div className="text-xs font-bold uppercase tracking-wide text-amber-800">
                         03. Tips Cepat TKAD DIY
                       </div>
-                      <p className="text-sm text-amber-950 leading-relaxed">
+                      <p className="mt-1 text-slate-800">
                         {currentQuestion.explanation.tipsCepat}
                       </p>
                     </div>
+
+                    {currentDeepAnalysis && (
+                      <div className="p-4 rounded-xl bg-sky-50/70 border border-sky-200 space-y-2">
+                        <div className="text-xs font-bold uppercase tracking-wide text-sky-900">
+                          Analisis Mendalam Kak Mentor AI
+                        </div>
+                        <div className="text-slate-800 whitespace-pre-line">
+                          {currentDeepAnalysis}
+                        </div>
+                      </div>
+                    )}
                   </div>
-
-                  {deepError && (
-                    <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-800">
-                      {deepError}
-                    </div>
-                  )}
-
-                  {deepAnalyses[currentQuestion.id] && (
-                    <div className="p-5 rounded-xl bg-sky-50/50 border border-sky-200 space-y-2">
-                      <div className="text-xs font-semibold text-sky-800">
-                        Analisis Mendalam Kak Mentor (Gemini 3.8 Flash + Groq (Mendalam))
-                      </div>
-                      <div className="text-sm text-slate-800 leading-relaxed whitespace-pre-line">
-                        {deepAnalyses[currentQuestion.id]}
-                      </div>
-                    </div>
-                  )}
                 </section>
               )}
 
-              {/* Contextual "Tanya Lebih Lanjut" Mini-Chat */}
-              {currentQuestion && (
-                <section
-                  aria-label="Tanya Lebih Lanjut Kak Mentor"
-                  className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4"
-                >
+              {/* Mini-chat Kak Mentor Kontekstual */}
+              {currentQuestion && (currentChats.length > 0 || isCurrentRevealed) && (
+                <section className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4">
                   <div className="flex items-center gap-3">
                     <img
                       src="/src/assets/images/avatar_kak_mentor_1795488088402.jpg"
                       alt="Kak Mentor"
                       referrerPolicy="no-referrer"
-                      className="w-10 h-10 rounded-full object-cover border border-slate-200 shrink-0"
+                      className="w-10 h-10 rounded-full object-cover border border-slate-200"
                     />
                     <div>
-                      <h3 className="font-display font-bold text-sm text-slate-900">
+                      <h4 className="font-display font-bold text-sm text-slate-900">
                         Tanya Lebih Lanjut tentang Soal Ini
-                      </h3>
+                      </h4>
                       <p className="text-xs text-slate-500">
-                        Terhubung langsung dengan konteks soal nomor{' '}
-                        <span className="tabular-nums">{safeIdx + 1}</span>
+                        Terhubung langsung dengan konteks soal nomor {safeIdx + 1}
                       </p>
                     </div>
                   </div>
 
-                  {/* Quick question chips */}
                   {isCurrentRevealed && (
                     <div className="flex flex-wrap gap-2">
-                      {[
-                        'Kak, kenapa langkah nomor 2 bisa dapat hasil segitu?',
-                        'Beri 1 contoh angka lain yang mirip soal ini dong, Kak.',
-                      ].map((prompt) => (
-                        <button
-                          key={prompt}
-                          type="button"
-                          onClick={() => sendQuestionChat(prompt)}
-                          className="px-3 py-1.5 text-xs text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg cursor-pointer text-left"
-                        >
-                          {prompt}
-                        </button>
-                      ))}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          sendQuestionChat(
+                            'Kak, kenapa langkah nomor 2 bisa dapat hasil segitu?'
+                          )
+                        }
+                        className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg cursor-pointer"
+                      >
+                        Kak, kenapa langkah nomor 2 bisa dapat hasil segitu?
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          sendQuestionChat(
+                            'Beri 1 contoh soal lain yang mirip soal ini dong, Kak.'
+                          )
+                        }
+                        className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg cursor-pointer"
+                      >
+                        Beri 1 contoh soal lain yang mirip soal ini dong, Kak.
+                      </button>
                     </div>
                   )}
 
-                  {(questionChats[currentQuestion.id] || []).length > 0 && (
-                    <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
-                      {(questionChats[currentQuestion.id] || []).map((msg) => (
+                  {currentChats.length > 0 && (
+                    <div className="space-y-3 max-h-80 overflow-y-auto p-3 rounded-xl bg-slate-50 border border-slate-200">
+                      {currentChats.map((msg) => (
                         <div
                           key={msg.id}
-                          className={`p-3.5 rounded-xl text-sm leading-relaxed ${
+                          className={`text-sm p-3 rounded-xl ${
                             msg.role === 'user'
                               ? 'bg-sky-700 text-white ml-8'
-                              : 'bg-slate-50 border border-slate-200 text-slate-800 mr-8'
+                              : 'bg-white border border-slate-200 text-slate-800 mr-8'
                           }`}
                         >
-                          <div className="text-xs font-semibold mb-1 opacity-75">
+                          <div className="text-[11px] font-semibold opacity-75 mb-1">
                             {msg.role === 'user' ? profile.name : 'Kak Mentor'}
                           </div>
-                          <div className="whitespace-pre-line">{msg.text}</div>
+                          <div className="whitespace-pre-line leading-relaxed">
+                            {msg.text}
+                          </div>
                         </div>
                       ))}
+                      {chatLoading && (
+                        <div className="text-xs text-slate-500 flex items-center gap-2">
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Kak Mentor sedang mengetik...</span>
+                        </div>
+                      )}
                     </div>
                   )}
 
                   {chatError && (
-                    <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-xs text-rose-800">
-                      {chatError}
-                    </div>
+                    <p className="text-xs text-rose-600">{chatError}</p>
                   )}
 
                   <form
@@ -908,25 +927,21 @@ export function PracticeView({
                       e.preventDefault();
                       sendQuestionChat();
                     }}
-                    className="flex items-center gap-2"
+                    className="flex gap-2"
                   >
                     <input
                       type="text"
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
                       placeholder="Tanya Kak Mentor bagian yang masih bikin bingung..."
-                      className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600"
+                      className="flex-1 px-3.5 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-600"
                     />
                     <button
                       type="submit"
                       disabled={chatLoading || !chatInput.trim()}
-                      className="px-4 py-2.5 bg-sky-700 hover:bg-sky-800 disabled:opacity-40 text-white text-sm font-semibold rounded-xl inline-flex items-center gap-1.5 cursor-pointer shrink-0"
+                      className="px-4 py-2 bg-sky-700 hover:bg-sky-800 disabled:opacity-40 text-white text-xs font-semibold rounded-xl inline-flex items-center gap-1.5 cursor-pointer"
                     >
-                      {chatLoading ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        <Send className="w-4 h-4" />
-                      )}
+                      <Send className="w-3.5 h-3.5" />
                       <span>Kirim</span>
                     </button>
                   </form>
@@ -934,90 +949,63 @@ export function PracticeView({
               )}
             </div>
 
-            {/* Right Navigation Sidebar */}
-            <aside className="lg:col-span-4 space-y-5">
-              <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-display font-bold text-sm text-slate-900">
-                    Navigasi Nomor Soal
-                  </h3>
-                  <span className="text-xs text-slate-500 tabular-nums">
-                    {Object.keys(draftAnswers).filter((id) =>
-                      activeQuestions.some((q) => q.id === id && draftAnswers[id])
-                    ).length}{' '}
-                    / {activeQuestions.length} terjawab
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-5 gap-2">
-                  {activeQuestions.map((q, idx) => {
-                    const isCurrent = idx === safeIdx;
-                    const answered = Boolean((draftAnswers[q.id] || '').trim());
-                    const revealed =
-                      mode === 'santai'
-                        ? Boolean(checkedSantai[q.id])
-                        : examFinished;
-                    const correct = revealed
-                      ? isAnswerCorrect(q, draftAnswers[q.id] || '')
-                      : false;
-
-                    let btnStyle =
-                      'border-slate-200 bg-white text-slate-700 hover:bg-slate-50';
-                    if (revealed) {
-                      btnStyle = correct
-                        ? 'border-emerald-600 bg-emerald-50 text-emerald-900'
-                        : 'border-rose-500 bg-rose-50 text-rose-900';
-                    } else if (answered) {
-                      btnStyle = 'border-sky-700 bg-sky-50 text-sky-900';
-                    }
-
-                    return (
-                      <button
-                        key={q.id}
-                        type="button"
-                        onClick={() => setCurrentIdx(idx)}
-                        className={`h-10 rounded-lg border text-xs font-semibold tabular-nums transition-colors cursor-pointer ${btnStyle} ${
-                          isCurrent ? 'ring-2 ring-sky-600 ring-offset-1' : ''
-                        }`}
-                      >
-                        {idx + 1}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="pt-3 border-t border-slate-100 text-xs text-slate-500 space-y-1">
-                  <div>
-                    Putih: Belum dijawab · Biru: Sudah diisi
-                  </div>
-                  <div>Hijau: Benar · Merah: Perlu diperbaiki</div>
-                </div>
-
-                {mode === 'simulasi' && !examFinished && (
-                  <button
-                    type="button"
-                    onClick={handleFinishSimulation}
-                    className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-xl cursor-pointer"
-                  >
-                    Akhiri &amp; Nilai Simulasi
-                  </button>
-                )}
+            {/* Right Question Navigator */}
+            <aside className="lg:col-span-4 bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-display font-bold text-sm text-slate-900">
+                  Navigasi Nomor Soal
+                </h3>
+                <span className="text-xs text-slate-500 tabular-nums">
+                  {activeQuestions.length} Soal
+                </span>
               </div>
 
-              <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3">
-                <div className="flex items-center gap-2 text-slate-900 font-display font-bold text-sm">
-                  <MessageSquare className="w-4 h-4 text-sky-700" />
-                  <span>Tips Belajar Kak Mentor</span>
+              <div className="grid grid-cols-5 gap-2">
+                {activeQuestions.map((q, idx) => {
+                  const isCurrent = idx === safeIdx;
+                  const hasAns = Boolean((draftAnswers[q.id] || '').trim());
+                  const isRev =
+                    mode === 'santai' ? Boolean(checkedSantai[q.id]) : examFinished;
+                  const correct = isRev && isAnswerCorrect(q, draftAnswers[q.id] || '');
+
+                  let btnStyle =
+                    'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100';
+                  if (isRev) {
+                    btnStyle = correct
+                      ? 'bg-emerald-50 text-emerald-900 border-emerald-400'
+                      : 'bg-rose-50 text-rose-900 border-rose-400';
+                  } else if (hasAns) {
+                    btnStyle = 'bg-sky-50 text-sky-900 border-sky-400';
+                  }
+
+                  return (
+                    <button
+                      key={q.id}
+                      type="button"
+                      onClick={() => setCurrentIdx(idx)}
+                      className={`h-10 rounded-lg border text-xs font-semibold tabular-nums transition-all cursor-pointer ${btnStyle} ${
+                        isCurrent ? 'ring-2 ring-sky-700 ring-offset-1' : ''
+                      }`}
+                    >
+                      {idx + 1}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 text-xs text-slate-500 space-y-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded bg-sky-100 border border-sky-400 inline-block" />
+                  <span>Sudah diisi</span>
                 </div>
-                <p className="text-xs text-slate-600 leading-relaxed">
-                  Jangan terburu-buru melihat kunci jawaban, Cah Bagus/Ayu.
-                  Kalau masih buntu, pakai tombol{' '}
-                  <span className="font-semibold text-slate-800">
-                    Minta Petunjuk Kak Mentor
-                  </span>{' '}
-                  supaya kamu terlatih menemukan langkahnya sendiri saat ujian
-                  TKAD nanti.
-                </p>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded bg-emerald-100 border border-emerald-400 inline-block" />
+                  <span>Jawaban tepat</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded bg-rose-100 border border-rose-400 inline-block" />
+                  <span>Perlu diperbaiki</span>
+                </div>
               </div>
             </aside>
           </div>
