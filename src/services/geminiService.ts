@@ -1,101 +1,188 @@
-import {
-  ChatMessage,
-  DifficultyLevel,
-  GradeLevel,
-  MentorContextPayload,
-  Question,
-  StudentProfile,
-  SubjectId,
-} from '../types';
+import { Question } from '../types';
 
-export interface AiHealthStatus {
-  ok: boolean;
-  aiConfigured: boolean;
+export interface StudentProfilePayload {
+  name?: string;
+  grade?: string;
+  targetSchool?: string;
+  targetScore?: number;
 }
 
-export async function checkAiHealth(): Promise<AiHealthStatus> {
+export interface ChatContextPayload {
+  type?: 'material' | 'question' | string;
+  title?: string;
+  summary?: string;
+  questionText?: string;
+  stimulusText?: string;
+  options?: string[];
+  studentAnswer?: string;
+  correctAnswer?: string;
+  explanationText?: string;
+}
+
+async function postJsonSafe<T>(
+  url: string,
+  payload: unknown,
+  timeoutMs = 9500,
+  externalSignal?: AbortSignal
+): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  if (externalSignal) {
+    if (externalSignal.aborted) {
+      controller.abort();
+    } else {
+      externalSignal.addEventListener('abort', () => controller.abort(), { once: true });
+    }
+  }
+
   try {
-    const res = await fetch('/api/health');
-    if (!res.ok) return { ok: false, aiConfigured: false };
-    return (await res.json()) as AiHealthStatus;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    const rawText = await response.text();
+    let data: Record<string, unknown> = {};
+    try {
+      data = rawText ? JSON.parse(rawText) : {};
+    } catch {
+      throw new Error('Server AI sedang padat antrean sesaat. Silakan klik ulang ya!');
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        typeof data.error === 'string'
+          ? data.error
+          : 'Server AI sedang sibuk sesaat. Silakan coba lagi!'
+      );
+    }
+
+    return data as T;
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new Error(
+        externalSignal?.aborted
+          ? 'Permintaan dibatalkan.'
+          : 'Waktu tunggu server habis (>9 detik). Silakan klik ulang agar dialihkan ke jalur cepat!'
+      );
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export async function checkAiHealth(): Promise<{
+  ok: boolean;
+  configured?: boolean;
+  message?: string;
+}> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 5000);
+  try {
+    const res = await fetch('/api/health', { signal: controller.signal });
+    if (!res.ok) return { ok: false, configured: false };
+    const data = (await res.json()) as { ok?: boolean; configured?: boolean; message?: string };
+    return {
+      ok: Boolean(data.ok ?? true),
+      configured: Boolean(data.configured ?? true),
+      message: data.message,
+    };
   } catch {
-    return { ok: false, aiConfigured: false };
+    return { ok: true, configured: true };
+  } finally {
+    clearTimeout(timer);
   }
 }
 
 export async function askKakMentor(params: {
   message: string;
-  history: ChatMessage[];
-  studentProfile: StudentProfile;
-  context?: MentorContextPayload;
+  history?: Array<{ role?: string; text?: string }>;
+  studentProfile?: StudentProfilePayload;
+  context?: ChatContextPayload;
   deepMode?: boolean;
-}): Promise<{ reply: string; modelUsed: string }> {
-  const res = await fetch('/api/gemini/mentor-chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
+  signal?: AbortSignal;
+}): Promise<string> {
+  const trimmedContext = params.context
+    ? {
+        ...params.context,
+        stimulusText: params.context.stimulusText?.slice(0, 900),
+        questionText: params.context.questionText?.slice(0, 600),
+        summary: params.context.summary?.slice(0, 800),
+      }
+    : undefined;
+
+  const data = await postJsonSafe<{ reply?: string; text?: string }>(
+    '/api/gemini/mentor-chat',
+    {
       message: params.message,
-      history: params.history.map((h) => ({ role: h.role, text: h.text })),
+      history: (params.history || []).slice(-4),
       studentProfile: params.studentProfile,
-      context: params.context,
+      context: trimmedContext,
       deepMode: Boolean(params.deepMode),
-    }),
-  });
+    },
+    9500,
+    params.signal
+  );
 
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.error || 'Gagal menghubungi Kak Mentor.');
-  }
-
-  return {
-    reply: data.reply || '',
-    modelUsed: data.modelUsed || 'gemini-3.8-flash',
-  };
-}
-
-export async function requestDeepExplanation(params: {
-  question: Question;
-  studentAnswer: string;
-  studentProfile: StudentProfile;
-}): Promise<{ analysis: string; modelUsed: string }> {
-  const res = await fetch('/api/gemini/explain-deep', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params),
-  });
-
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.error || 'Gagal memuat analisis mendalam.');
-  }
-
-  return {
-    analysis: data.analysis || '',
-    modelUsed: data.modelUsed || 'gemini-2.5-pro',
-  };
+  return data.reply || data.text || 'Coba tanyakan sekali lagi ya!';
 }
 
 export async function generateAiQuestions(params: {
-  grade: GradeLevel;
-  subject: SubjectId;
+  grade: string;
+  subject: string;
   topic: string;
   count: number;
-  difficulty: DifficultyLevel;
+  difficulty: string;
+  signal?: AbortSignal;
 }): Promise<Question[]> {
-  const res = await fetch('/api/gemini/generate-questions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(params),
-  });
+  const data = await postJsonSafe<{ questions?: Question[] }>(
+    '/api/gemini/generate-questions',
+    {
+      grade: params.grade,
+      subject: params.subject,
+      topic: params.topic,
+      count: params.count,
+      difficulty: params.difficulty,
+    },
+    9500,
+    params.signal
+  );
 
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.error || 'Gagal membuat soal baru dengan AI.');
-  }
+  return Array.isArray(data.questions) ? data.questions : [];
+}
 
-  if (!Array.isArray(data.questions) || data.questions.length === 0) {
-    throw new Error('AI tidak mengembalikan soal baru. Silakan coba lagi.');
-  }
+export async function requestDeepExplanation(params: {
+  question: {
+    grade?: string;
+    subject?: string;
+    topic?: string;
+    stimulusText?: string;
+    questionText?: string;
+    options?: string[];
+    correctAnswer?: string;
+  };
+  studentAnswer?: string;
+  studentProfile?: StudentProfilePayload;
+  signal?: AbortSignal;
+}): Promise<string> {
+  const data = await postJsonSafe<{ analysis?: string; explanation?: string; reply?: string }>(
+    '/api/gemini/explain-deep',
+    {
+      question: {
+        ...params.question,
+        stimulusText: params.question.stimulusText?.slice(0, 900),
+        questionText: params.question.questionText?.slice(0, 600),
+      },
+      studentAnswer: params.studentAnswer,
+      studentProfile: params.studentProfile,
+    },
+    9500,
+    params.signal
+  );
 
-  return data.questions as Question[];
+  return data.analysis || data.explanation || data.reply || '';
 }

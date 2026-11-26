@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Loader2, PlusCircle, X } from 'lucide-react';
 import { SUBJECT_META } from '../data/initialQuestions';
 import { generateAiQuestions } from '../services/geminiService';
@@ -33,10 +33,36 @@ export function AiGeneratorModal({
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setSubject(defaultSubject);
+      setTopic(defaultTopic || availableTopicsBySubject[defaultSubject]?.[0] || 'Umum');
+      setErrorMsg(null);
+    }
+  }, [isOpen, defaultSubject, defaultTopic, availableTopicsBySubject]);
+
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
+
   if (!isOpen) return null;
 
   const topicsForSubject = availableTopicsBySubject[subject] || [];
   const gradeLabel = grade === 'SD' ? 'SD Kelas 6' : 'SMP Kelas 9';
+
+  const handleClose = () => {
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
+    setLoading(false);
+    setErrorMsg(null);
+    onClose();
+  };
 
   const handleSubjectChange = (nextSub: SubjectId) => {
     setSubject(nextSub);
@@ -48,8 +74,14 @@ export function AiGeneratorModal({
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     const finalTopic = customTopic.trim() || topic || SUBJECT_META[subject].label;
     setLoading(true);
+
     try {
       const created = await generateAiQuestions({
         grade,
@@ -57,17 +89,26 @@ export function AiGeneratorModal({
         topic: finalTopic,
         count,
         difficulty,
+        signal: controller.signal,
       });
+
+      if (controller.signal.aborted) return;
+
       onQuestionsGenerated(created);
+      setLoading(false);
       onClose();
     } catch (err: unknown) {
+      if (controller.signal.aborted) return;
       setErrorMsg(
         err instanceof Error
           ? err.message
           : 'Gagal membuat soal baru. Coba lagi beberapa saat.'
       );
-    } finally {
       setLoading(false);
+    } finally {
+      if (abortRef.current === controller) {
+        abortRef.current = null;
+      }
     }
   };
 
@@ -93,10 +134,9 @@ export function AiGeneratorModal({
           </div>
           <button
             type="button"
-            onClick={onClose}
-            disabled={loading}
+            onClick={handleClose}
             aria-label="Tutup modal"
-            className="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg cursor-pointer"
+            className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -118,8 +158,9 @@ export function AiGeneratorModal({
                 <button
                   key={sub}
                   type="button"
+                  disabled={loading}
                   onClick={() => handleSubjectChange(sub)}
-                  className={`py-2 px-3 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
+                  className={`py-2 px-3 text-xs font-semibold rounded-lg border transition-colors cursor-pointer disabled:opacity-60 ${
                     subject === sub
                       ? 'border-sky-700 bg-sky-50 text-sky-900'
                       : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
@@ -141,8 +182,9 @@ export function AiGeneratorModal({
             <select
               id="gen-topic-select"
               value={topic}
+              disabled={loading}
               onChange={(e) => setTopic(e.target.value)}
-              className="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-sky-600"
+              className="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm text-slate-900 bg-white focus:outline-none focus:ring-2 focus:ring-sky-600 disabled:opacity-60"
             >
               {topicsForSubject.map((t) => (
                 <option key={t} value={t}>
@@ -163,9 +205,10 @@ export function AiGeneratorModal({
               id="gen-custom-topic"
               type="text"
               value={customTopic}
+              disabled={loading}
               onChange={(e) => setCustomTopic(e.target.value)}
               placeholder="Misal: Teorema Pythagoras, Kalimat Efektif, Tata Surya"
-              className="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600"
+              className="w-full px-3.5 py-2 rounded-lg border border-slate-300 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-600 disabled:opacity-60"
             />
           </div>
 
@@ -180,8 +223,9 @@ export function AiGeneratorModal({
                     <button
                       key={lvl}
                       type="button"
+                      disabled={loading}
                       onClick={() => setDifficulty(lvl)}
-                      className={`flex-1 py-2 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
+                      className={`flex-1 py-2 text-xs font-semibold rounded-lg border transition-colors cursor-pointer disabled:opacity-60 ${
                         difficulty === lvl
                           ? 'border-sky-700 bg-sky-50 text-sky-900'
                           : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
@@ -203,8 +247,9 @@ export function AiGeneratorModal({
                   <button
                     key={num}
                     type="button"
+                    disabled={loading}
                     onClick={() => setCount(num)}
-                    className={`flex-1 py-2 text-xs font-semibold rounded-lg border transition-colors cursor-pointer tabular-nums ${
+                    className={`flex-1 py-2 text-xs font-semibold rounded-lg border transition-colors cursor-pointer tabular-nums disabled:opacity-60 ${
                       count === num
                         ? 'border-sky-700 bg-sky-50 text-sky-900'
                         : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
@@ -226,9 +271,8 @@ export function AiGeneratorModal({
           <div className="pt-2 flex items-center justify-end gap-3">
             <button
               type="button"
-              onClick={onClose}
-              disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg cursor-pointer"
+              onClick={handleClose}
+              className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg cursor-pointer transition-colors"
             >
               Batal
             </button>

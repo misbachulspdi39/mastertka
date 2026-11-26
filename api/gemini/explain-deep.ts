@@ -40,6 +40,7 @@ async function callGroqExplain(systemInstruction: string, prompt: string): Promi
 
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
+    signal: AbortSignal.timeout(5500),
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${groqKey}`,
@@ -107,7 +108,23 @@ Berikan penjelasan singkat, jelas, dan terstruktur:
 2. **Langkah Penyelesaian Rinci & Jebakan Pengecoh**
 3. **Tips Cepat Menghadapi Soal Serupa di TKAD DIY**`;
 
-    // 1. Coba jalur utama: Gemini
+    // 1. Jalur cepat utama jika Groq terpasang (< 1 detik)
+    if (groqKey) {
+      try {
+        const groqAnalysis = await callGroqExplain(systemInstruction, prompt);
+        if (groqAnalysis) {
+          res.status(200).json({
+            analysis: groqAnalysis,
+            modelUsed: 'groq-llama-3.3-70b',
+          });
+          return;
+        }
+      } catch {
+        // Lanjut otomatis ke Gemini jika Groq gagal
+      }
+    }
+
+    // 2. Fallback ke Gemini dengan rotasi API Key
     for (let i = 0; i < geminiKeys.length; i++) {
       try {
         const ai = new GoogleGenAI({ apiKey: geminiKeys[i] });
@@ -131,19 +148,8 @@ Berikan penjelasan singkat, jelas, dan terstruktur:
           await new Promise((resolve) => setTimeout(resolve, 400));
           continue;
         }
-        if (groqKey) break;
         throw err;
       }
-    }
-
-    // 2. Jalur cadangan kilat: Groq
-    if (groqKey) {
-      const groqAnalysis = await callGroqExplain(systemInstruction, prompt);
-      res.status(200).json({
-        analysis: groqAnalysis,
-        modelUsed: 'groq-llama-3.3-70b',
-      });
-      return;
     }
 
     res.status(503).json({

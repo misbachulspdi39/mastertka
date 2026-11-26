@@ -824,7 +824,7 @@ export function PracticeView({
                   {deepAnalyses[currentQuestion.id] && (
                     <div className="p-5 rounded-xl bg-sky-50/50 border border-sky-200 space-y-2">
                       <div className="text-xs font-semibold text-sky-800">
-                        Analisis Mendalam Kak Mentor (Gemini 2.5 Pro)
+                        Analisis Mendalam Kak Mentor (Gemini 3.8 Flash + Groq (Mendalam))
                       </div>
                       <div className="text-sm text-slate-800 leading-relaxed whitespace-pre-line">
                         {deepAnalyses[currentQuestion.id]}

@@ -50,6 +50,7 @@ async function callGroqChat(
 
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
+    signal: AbortSignal.timeout(5500),
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${groqKey}`,
@@ -133,7 +134,23 @@ Pedoman:
     const prompt = `${contextBlock}${historyLines ? `[RIWAYAT]\n${historyLines}\n\n` : ''}Pertanyaan Siswa: ${message}`;
     const maxTokens = deepMode ? 900 : 450;
 
-    // 1. Coba jalur utama: Gemini (rotasi semua API Key yang tersedia)
+    // 1. Jalur cepat utama jika Groq terpasang (< 1 detik)
+    if (groqKey) {
+      try {
+        const groqReply = await callGroqChat(systemInstruction, prompt, maxTokens);
+        if (groqReply) {
+          res.status(200).json({
+            reply: groqReply,
+            modelUsed: 'groq-llama-3.3-70b',
+          });
+          return;
+        }
+      } catch {
+        // Lanjut otomatis ke Gemini jika Groq gagal
+      }
+    }
+
+    // 2. Jalur Gemini dengan rotasi API Key
     for (let i = 0; i < geminiKeys.length; i++) {
       try {
         const ai = new GoogleGenAI({ apiKey: geminiKeys[i] });
@@ -157,20 +174,8 @@ Pedoman:
           await new Promise((resolve) => setTimeout(resolve, 400));
           continue;
         }
-        // Jika error lain selain sibuk dan Groq tersedia, lanjut ke Groq
-        if (groqKey) break;
         throw err;
       }
-    }
-
-    // 2. Jalur cadangan kilat: Groq (Llama 3.3 70B)
-    if (groqKey) {
-      const groqReply = await callGroqChat(systemInstruction, prompt, maxTokens);
-      res.status(200).json({
-        reply: groqReply || 'Coba tanyakan sekali lagi ya!',
-        modelUsed: 'groq-llama-3.3-70b',
-      });
-      return;
     }
 
     res.status(503).json({

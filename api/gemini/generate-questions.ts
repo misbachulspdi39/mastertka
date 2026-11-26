@@ -53,6 +53,7 @@ Output WAJIB berupa JSON valid dengan format objek:
 
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
+    signal: AbortSignal.timeout(5500),
     headers: {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${groqKey}`,
@@ -65,6 +66,7 @@ Output WAJIB berupa JSON valid dengan format objek:
       ],
       response_format: { type: 'json_object' },
       temperature: 0.6,
+      max_tokens: 1800,
     }),
   });
 
@@ -115,87 +117,93 @@ export default async function handler(req: VercelReq, res: VercelRes) {
         ? 'Numerasi / Matematika'
         : 'Literasi Sains / IPA';
 
-    const prompt = `Buatlah ${safeCount} soal latihan baru berstandar TKA & TKAD DIY untuk jenjang ${gradeLabel}, mata uji ${subjectLabel}, topik "${topic}", tingkat kesulitan "${difficulty}" dengan stimulus kearifan lokal Daerah Istimewa Yogyakarta. Pastikan opsi pilihan ganda diawali huruf A., B., C., D. dan correctAnswer berisi teks lengkap pilihan yang benar.`;
+    const prompt = `Buatlah ${safeCount} soal latihan baru berstandar TKA & TKAD DIY untuk jenjang ${gradeLabel}, mata uji ${subjectLabel}, topik "${topic}", tingkat kesulitan "${difficulty}" dengan stimulus singkat konteks Daerah Istimewa Yogyakarta. Opsi pilihan ganda diawali huruf A., B., C., D. dan correctAnswer berisi teks lengkap pilihan yang benar.`;
 
     let rawQuestions: unknown[] | null = null;
     let lastError: unknown;
 
-    // 1. Coba jalur utama: Gemini
-    for (let i = 0; i < geminiKeys.length; i++) {
+    // 1. Jalur cepat utama jika Groq terpasang (< 1.5 detik)
+    if (groqKey) {
       try {
-        const ai = new GoogleGenAI({ apiKey: geminiKeys[i] });
-        const response = await ai.models.generateContent({
-          model: 'gemini-3.8-flash',
-          contents: prompt,
-          config: {
-            systemInstruction:
-              'Kamu adalah penulis soal TKA & TKAD Dinas Pendidikan DIY. Output wajib JSON valid sesuai skema.',
-            thinkingConfig: { thinkingBudget: 0 },
-            responseMimeType: 'application/json',
-            responseSchema: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  topic: { type: Type.STRING },
-                  type: { type: Type.STRING },
-                  difficulty: { type: Type.STRING },
-                  stimulusTitle: { type: Type.STRING },
-                  stimulusText: { type: Type.STRING },
-                  questionText: { type: Type.STRING },
-                  options: { type: Type.ARRAY, items: { type: Type.STRING } },
-                  correctAnswer: { type: Type.STRING },
-                  explanation: {
-                    type: Type.OBJECT,
-                    properties: {
-                      konsepDasar: { type: Type.STRING },
-                      langkahPengerjaan: { type: Type.ARRAY, items: { type: Type.STRING } },
-                      tipsCepat: { type: Type.STRING },
-                    },
-                    required: ['konsepDasar', 'langkahPengerjaan', 'tipsCepat'],
-                  },
-                },
-                required: [
-                  'topic',
-                  'type',
-                  'difficulty',
-                  'stimulusTitle',
-                  'stimulusText',
-                  'questionText',
-                  'options',
-                  'correctAnswer',
-                  'explanation',
-                ],
-              },
-            },
-          },
-        });
-        const parsed = JSON.parse((response.text || '[]').trim());
-        rawQuestions = Array.isArray(parsed) ? parsed : [];
-        lastError = null;
-        break;
-      } catch (err: unknown) {
+        rawQuestions = await callGroqQuestions(prompt);
+      } catch (err) {
         lastError = err;
-        const msg = err instanceof Error ? err.message : String(err);
-        if (msg.includes('503') || msg.includes('UNAVAILABLE') || msg.includes('429')) {
-          await new Promise((resolve) => setTimeout(resolve, 400));
-          continue;
-        }
-        if (groqKey) break;
-        throw err;
       }
     }
 
-    // 2. Jalur cadangan kilat: Groq
-    if (rawQuestions === null && groqKey) {
-      rawQuestions = await callGroqQuestions(prompt);
-      lastError = null;
+    // 2. Fallback ke Gemini dengan rotasi API Key
+    if (rawQuestions === null && geminiKeys.length > 0) {
+      for (let i = 0; i < geminiKeys.length; i++) {
+        try {
+          const ai = new GoogleGenAI({ apiKey: geminiKeys[i] });
+          const response = await ai.models.generateContent({
+            model: 'gemini-3.8-flash',
+            contents: prompt,
+            config: {
+              systemInstruction:
+                'Kamu adalah penulis soal TKA & TKAD Dinas Pendidikan DIY. Output wajib JSON valid sesuai skema, ringkas dan padat.',
+              thinkingConfig: { thinkingBudget: 0 },
+              responseMimeType: 'application/json',
+              responseSchema: {
+                type: Type.ARRAY,
+                items: {
+                  type: Type.OBJECT,
+                  properties: {
+                    topic: { type: Type.STRING },
+                    type: { type: Type.STRING },
+                    difficulty: { type: Type.STRING },
+                    stimulusTitle: { type: Type.STRING },
+                    stimulusText: { type: Type.STRING },
+                    questionText: { type: Type.STRING },
+                    options: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    correctAnswer: { type: Type.STRING },
+                    explanation: {
+                      type: Type.OBJECT,
+                      properties: {
+                        konsepDasar: { type: Type.STRING },
+                        langkahPengerjaan: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        tipsCepat: { type: Type.STRING },
+                      },
+                      required: ['konsepDasar', 'langkahPengerjaan', 'tipsCepat'],
+                    },
+                  },
+                  required: [
+                    'topic',
+                    'type',
+                    'difficulty',
+                    'stimulusTitle',
+                    'stimulusText',
+                    'questionText',
+                    'options',
+                    'correctAnswer',
+                    'explanation',
+                  ],
+                },
+              },
+            },
+          });
+          const parsed = JSON.parse((response.text || '[]').trim());
+          rawQuestions = Array.isArray(parsed) ? parsed : [];
+          lastError = null;
+          break;
+        } catch (err: unknown) {
+          lastError = err;
+          const msg = err instanceof Error ? err.message : String(err);
+          if (msg.includes('503') || msg.includes('UNAVAILABLE') || msg.includes('429')) {
+            await new Promise((resolve) => setTimeout(resolve, 400));
+            continue;
+          }
+          throw err;
+        }
+      }
     }
 
-    if (lastError && rawQuestions === null) throw lastError;
+    if (rawQuestions === null) {
+      throw lastError || new Error('Server AI sedang sibuk.');
+    }
 
     const nowIso = new Date().toISOString();
-    const normalized = (rawQuestions || []).map((item, idx) => {
+    const normalized = rawQuestions.map((item, idx) => {
       const q = item as Record<string, unknown>;
       const exp = (q.explanation || {}) as Record<string, unknown>;
       const qType = q.type === 'isian_singkat' ? 'isian_singkat' : 'pilihan_ganda';
@@ -233,8 +241,12 @@ export default async function handler(req: VercelReq, res: VercelRes) {
   } catch (err: unknown) {
     const rawMsg = err instanceof Error ? err.message : '';
     const friendlyMsg =
-      rawMsg.includes('503') || rawMsg.includes('UNAVAILABLE') || rawMsg.includes('429')
-        ? 'Semua jalur server AI sedang padat antrean sesaat. Tunggu beberapa detik lalu coba klik ulang ya!'
+      rawMsg.includes('503') ||
+      rawMsg.includes('UNAVAILABLE') ||
+      rawMsg.includes('429') ||
+      rawMsg.includes('timeout') ||
+      rawMsg.includes('aborted')
+        ? 'Server AI sedang padat antrean sesaat. Silakan klik Generate & Simpan Soal lagi ya!'
         : rawMsg || 'Gagal membuat soal baru dengan AI.';
     res.status(500).json({ error: friendlyMsg });
   }

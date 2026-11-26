@@ -158,7 +158,7 @@ export function MentorChatView({
             >
               <div className="text-xs font-bold">Respons Cepat</div>
               <div className="text-[11px] text-slate-500 mt-0.5">
-                Gemini 2.5 Flash
+                Gemini 3.8 Flash + Groq
               </div>
             </button>
             <button
@@ -172,7 +172,7 @@ export function MentorChatView({
             >
               <div className="text-xs font-bold">Pembahasan Dalam</div>
               <div className="text-[11px] text-slate-500 mt-0.5">
-                Gemini 2.5 Pro
+                Gemini 3.8 Flash + Groq (Mendalam)
               </div>
             </button>
           </div>
@@ -225,7 +225,7 @@ export function MentorChatView({
               Ruang Mentoring Pribadi
             </h2>
             <p className="text-xs text-slate-500">
-              Mode aktif: {deepMode ? 'Gemini 2.5 Pro (Analisis Kompleks)' : 'Gemini 2.5 Flash (Cepat)'}
+              Mode aktif: {deepMode ? 'Gemini 3.8 Flash + Groq (Mendalam) (Analisis Kompleks)' : 'Gemini 3.8 Flash + Groq (Cepat)'}
             </p>
           </div>
           <button
